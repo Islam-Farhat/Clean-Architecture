@@ -43,7 +43,6 @@ namespace E_commerce.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var result = await _categoryService.GetAll();
-
             if (result.IsSuccess)
                 return Ok(result.Data);
 

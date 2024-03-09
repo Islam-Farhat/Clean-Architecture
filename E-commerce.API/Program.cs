@@ -2,6 +2,7 @@ using E_commerce.Infrastructure;
 using E_commerce.Application;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using E_commerce.API.Middlewares;
 
 namespace E_commerce.API
 {
@@ -25,6 +26,11 @@ namespace E_commerce.API
             builder.Services.AddApplication();
             #endregion
 
+            #region Middlewares
+
+            builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
+
+            #endregion
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -36,6 +42,8 @@ namespace E_commerce.API
 
             app.UseAuthorization();
 
+
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             app.MapControllers();
 
