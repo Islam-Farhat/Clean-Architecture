@@ -3,7 +3,7 @@ using E_commerce.Application.Dto.Category;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace E_commerce.API.Controllers
+namespace E_commerce.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -19,11 +19,16 @@ namespace E_commerce.API
             builder.Services.AddSwaggerGen();
 
 
-            #region Injection in Infrastructure and Application layer
+            #region Injection in Infrastructure, Application ,and Presentation layer
 
             var configuration = builder.Configuration;
             builder.Services.AddInfrastructure(configuration);
             builder.Services.AddApplication();
+
+            var presentationAssembly = typeof(Presentation.AssemblyReference).Assembly;
+            builder.Services.AddControllers()
+                .AddApplicationPart(presentationAssembly);
+
             #endregion
 
             #region Middlewares

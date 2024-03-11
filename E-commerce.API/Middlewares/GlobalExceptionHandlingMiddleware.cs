@@ -17,7 +17,8 @@ namespace E_commerce.API.Middlewares
         {
             try
             {
-                throw new Exception();
+                await next(context);
+                //throw new Exception();
             }
             catch (Exception ex)
             {
