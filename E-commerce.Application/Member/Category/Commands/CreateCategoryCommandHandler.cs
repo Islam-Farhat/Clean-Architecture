@@ -15,9 +15,9 @@ namespace E_commerce.Application
         private readonly IGenericRepository<Category> _categoryRepo;
         private readonly IMapper _mapper;
         private readonly ILogger<Category> _logger;
-        private readonly IValidator<CreateCategoryDto> _validator;
+        private readonly IValidator<CreateCategoryCommand> _validator;
 
-        public CreateCategoryCommandHandler(IGenericRepository<Category> categoryRepo, IMapper mapper, ILogger<Category> logger, IValidator<CreateCategoryDto> validator)
+        public CreateCategoryCommandHandler(IGenericRepository<Category> categoryRepo, IMapper mapper, ILogger<Category> logger, IValidator<CreateCategoryCommand> validator)
         {
             this._categoryRepo = categoryRepo;
             this._mapper = mapper;
@@ -29,10 +29,10 @@ namespace E_commerce.Application
         {
             try
             {
-                //var validationResult = await _validator.ValidateAsync(value);
-                //if (!validationResult.IsValid)
-                //    return new ResponseModel<CreateCategoryDto>(false, errorMessage: validationResult.Errors.Select(e => e.PropertyName + " : " + e.ErrorMessage));
-
+                var validationResult = await _validator.ValidateAsync(request);
+                if (!validationResult.IsValid)
+                    return ResponseModel.Failure(validationResult.Errors.Select(e => e.PropertyName + " : " + e.ErrorMessage));
+               
                 var category = _mapper.Map<Category>(request);
 
                 await _categoryRepo.Add(category);
