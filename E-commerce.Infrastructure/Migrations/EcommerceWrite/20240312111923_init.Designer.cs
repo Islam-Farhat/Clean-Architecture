@@ -4,16 +4,19 @@ using E_commerce.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commerce.Infrastructure.Migrations
+namespace E_commerce.Infrastructure.Migrations.EcommerceWrite
 {
-    [DbContext(typeof(EcommerceReadContext))]
-    partial class EcommerceContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(EcommerceWriteContext))]
+    [Migration("20240312111923_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

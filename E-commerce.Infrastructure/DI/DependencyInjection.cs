@@ -19,8 +19,11 @@ namespace E_commerce.Infrastructure
 
             #region Database
 
-            var connectionstring = configuration.GetConnectionString("ECO");
-            services.AddDbContext<EcommerceContext>(option => option.UseSqlServer(connectionstring));
+            var connectionstring = configuration.GetConnectionString("ECORead");
+            services.AddDbContext<EcommerceReadContext>(option => option.UseSqlServer(connectionstring));
+
+            var connectionstringwrite = configuration.GetConnectionString("ECOWrite");
+            services.AddDbContext<EcommerceWriteContext>(option => option.UseSqlServer(connectionstringwrite));
 
             #endregion
 

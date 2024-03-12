@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace E_commerce.Infrastructure.Migrations
 {
-    [DbContext(typeof(EcommerceContext))]
+    [DbContext(typeof(EcommerceReadContext))]
     [Migration("20240213114035_second")]
     partial class second
     {

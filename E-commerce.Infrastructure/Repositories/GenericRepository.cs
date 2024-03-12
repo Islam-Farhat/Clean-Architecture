@@ -12,16 +12,18 @@ namespace E_commerce.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly EcommerceContext _context;
+        private readonly EcommerceReadContext _contextRead;
+        private readonly EcommerceWriteContext _contextWrite;
 
-        public GenericRepository(EcommerceContext context)
+        public GenericRepository(EcommerceReadContext contextRead,EcommerceWriteContext contextWrite)
         {
-            this._context = context;
+            this._contextRead = contextRead;
+            this._contextWrite = contextWrite;
         }
 
         public async Task Add(T entity)
         {
-            await _context.AddAsync(entity);
+            await _contextWrite.AddAsync(entity);
         }
 
         public void Delete(T entity)
@@ -36,7 +38,7 @@ namespace E_commerce.Infrastructure.Repositories
 
         public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, string[] includes = null)
         {
-            IQueryable<T> query = _context.Set<T>();
+            IQueryable<T> query = _contextRead.Set<T>();
 
             if (includes != null)
                 foreach (var include in includes)
@@ -67,7 +69,7 @@ namespace E_commerce.Infrastructure.Repositories
 
         public async Task<bool> Save()
         {
-            return await _context.SaveChangesAsync() > 0;
+            return await _contextWrite.SaveChangesAsync() > 0;
         }
 
         public Task<object> SqlRaw(string Query)
@@ -84,6 +86,6 @@ namespace E_commerce.Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
-        public async Task<T?> GetObj(Expression<Func<T, bool>> filter) => await _context.Set<T>().AsQueryable<T>().FirstOrDefaultAsync(filter);
+        public async Task<T?> GetObj(Expression<Func<T, bool>> filter) => await _contextRead.Set<T>().AsQueryable<T>().FirstOrDefaultAsync(filter);
     }
 }

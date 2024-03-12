@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_commerce.Infrastructure.Migrations
+namespace E_commerce.Infrastructure.Migrations.EcommerceWrite
 {
-    [DbContext(typeof(EcommerceReadContext))]
-    partial class EcommerceContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(EcommerceWriteContext))]
+    partial class EcommerceWriteContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

@@ -28,6 +28,13 @@ namespace E_commerce.Application
 
             #endregion
 
+            #region Mediator
+
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
+
+            #endregion
+
             return services;
         }
     }

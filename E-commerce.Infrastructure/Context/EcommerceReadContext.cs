@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace E_commerce.Infrastructure.Context
 {
-    public class EcommerceContext : IdentityDbContext<ApplicationUser,ApplicationRole,string>
+    public class EcommerceReadContext : IdentityDbContext<ApplicationUser,ApplicationRole,string>
     {
-        public EcommerceContext(DbContextOptions<EcommerceContext> options)
+        public EcommerceReadContext(DbContextOptions<EcommerceReadContext> options)
         : base(options)
         {
         }
