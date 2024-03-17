@@ -27,7 +27,7 @@ namespace E_commerce.Presentation.Controllers
             if (result.IsSuccess)
                 return Ok(result);
 
-            return BadRequest(result.ErrorMessege);
+            return BadRequest(result);
 
         }
 
@@ -37,9 +37,9 @@ namespace E_commerce.Presentation.Controllers
             var query = new GetAllCategoriesQuery();
             var result = await _mediator.Send(query);
             if (result.IsSuccess)
-                return Ok(result.Data);
+                return Ok(result);
 
-            return BadRequest(result.ErrorMessege);
+            return BadRequest(result);
 
         }
 
@@ -50,9 +50,9 @@ namespace E_commerce.Presentation.Controllers
         {
             var result = await _categoryService.Add(category);
             if (result.IsSuccess)
-                return Ok(result.ErrorMessege);
+                return Ok(result);
 
-            return BadRequest(result.ErrorMessege);
+            return BadRequest(result);
 
         }
 
@@ -62,9 +62,9 @@ namespace E_commerce.Presentation.Controllers
             var result = await _categoryService.GetObj(categoryDto);
 
             if (result.IsSuccess)
-                return Ok(result.Data);
+                return Ok(result);
 
-            return BadRequest(result.ErrorMessege);
+            return BadRequest(result);
 
         }
 
@@ -73,9 +73,9 @@ namespace E_commerce.Presentation.Controllers
         {
             var result = await _categoryService.GetAll();
             if (result.IsSuccess)
-                return Ok(result.Data);
+                return Ok(result);
 
-            return BadRequest(result.ErrorMessege);
+            return BadRequest(result);
 
         }
     }
