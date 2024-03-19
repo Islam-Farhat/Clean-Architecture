@@ -10,16 +10,13 @@ namespace E_commerce.Presentation.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly ICategoryService _categoryService;
         private readonly IMediator _mediator;
 
-        public CategoryController(ICategoryService categoryService, IMediator mediator)
+        public CategoryController(IMediator mediator)
         {
-            this._categoryService = categoryService;
             _mediator = mediator;
         }
 
-        //Using Mediator
         [HttpPost("AddWithMediator")]
         public async Task<IActionResult> Add(CreateCategoryCommand category)
         {
@@ -43,40 +40,5 @@ namespace E_commerce.Presentation.Controllers
 
         }
 
-
-        //Using Services
-        [HttpPost("Add")]
-        public async Task<IActionResult> Add(CreateCategoryDto category)
-        {
-            var result = await _categoryService.Add(category);
-            if (result.IsSuccess)
-                return Ok(result);
-
-            return BadRequest(result);
-
-        }
-
-        [HttpGet("GetObj")]
-        public async Task<IActionResult> GetObj([FromQuery] GetCategoryDto categoryDto)
-        {
-            var result = await _categoryService.GetObj(categoryDto);
-
-            if (result.IsSuccess)
-                return Ok(result);
-
-            return BadRequest(result);
-
-        }
-
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
-        {
-            var result = await _categoryService.GetAll();
-            if (result.IsSuccess)
-                return Ok(result);
-
-            return BadRequest(result);
-
-        }
     }
 }

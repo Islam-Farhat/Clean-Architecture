@@ -23,7 +23,6 @@ namespace E_commerce.Application
 
             #region Inject Service
 
-            services.AddScoped<ICategoryService, CategoryService>();
             services.AddAutoMapper(typeof(EcommerceProfile));
 
             #endregion

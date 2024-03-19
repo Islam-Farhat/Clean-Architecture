@@ -13,8 +13,8 @@ namespace E_commerce.Application
     {
     }
 
-    public interface ICommandHandler<TCommand, TResponse> : IRequestHandler<TCommand, ResponseModel<TResponse>>
-       where TCommand : ICommand<TResponse>
-    {
-    }
+    //public interface ICommandHandler<TCommand, TResponse> : IRequestHandler<TCommand, ResponseModel<TResponse>>
+    //   where TCommand : ICommand<TResponse>
+    //{
+    //}
 }

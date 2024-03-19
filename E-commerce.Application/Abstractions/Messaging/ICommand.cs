@@ -11,7 +11,7 @@ namespace E_commerce.Application
     public interface ICommand : IRequest<ResponseModel>
     {
     }
-    public interface ICommand<TResponse> : IRequest<ResponseModel<TResponse>>
-    {
-    }
+    //public interface ICommand<TResponse> : IRequest<ResponseModel<TResponse>>
+    //{
+    //}
 }
