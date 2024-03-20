@@ -13,9 +13,6 @@ namespace E_commerce.Application.Mapper
     {
         public EcommerceProfile()
         {
-            CreateMap<Category, CreateCategoryDto>().ReverseMap();
-            CreateMap<Category, GetCategoryDto>().ReverseMap();
-
             CreateMap<Category, CreateCategoryCommand>().ReverseMap();
             CreateMap<Category, CategoryResponse>().ReverseMap();
         }
