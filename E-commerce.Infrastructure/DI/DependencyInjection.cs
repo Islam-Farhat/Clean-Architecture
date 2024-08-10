@@ -1,6 +1,6 @@
 ﻿using E_commerce.Domian;
+using E_commerce.Domian.Entities;
 using E_commerce.Infrastructure.Context;
-using E_commerce.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,15 +20,10 @@ namespace E_commerce.Infrastructure
             #region Database
 
             var connectionstring = configuration.GetConnectionString("ECORead");
-            services.AddDbContext<EcommerceReadContext>(option => option.UseSqlServer(connectionstring));
+            services.AddDbContext<EcommerceContext>(option => option.UseSqlServer(connectionstring));
 
-            var connectionstringwrite = configuration.GetConnectionString("ECOWrite");
-            services.AddDbContext<EcommerceWriteContext>(option => option.UseSqlServer(connectionstringwrite));
+            services.AddScoped<IEcommerceContext , EcommerceContext>();
 
-            #endregion
-
-            #region Inject Repos
-            services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
             #endregion
 
             return services;

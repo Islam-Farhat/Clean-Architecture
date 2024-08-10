@@ -9,16 +9,15 @@ namespace E_commerce.Domian
 {
     public class Order
     {
-        public int Id { get; set; }
-        public string OrderNumber { get; set; }
-        public DateTime OrderDate { get; set; }
+        public readonly HashSet<Item> OrderItems = new();
+        private Order()
+        {
+            
+        }
+        public int Id { get; private set; }
+        public string OrderNumber { get; private set; } = string.Empty;
+        public DateTime OrderDate { get; private set; }
 
-        // Customer details
-
-        [ForeignKey("ApplicationUser")]
-        public string UserId { get; set; }
-        public virtual ApplicationUser ApplicationUser { get; set; }
-        // Navigation property
-        public virtual ICollection<Item> OrderItems { get; set; }
+        public IReadOnlyList<Item> Items => OrderItems.ToList();
     }
 }

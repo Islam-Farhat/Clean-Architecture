@@ -17,4 +17,8 @@
     <ProjectReference Include="..\E-commerce.Domian\E-commerce.Domian.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\" />
+  </ItemGroup>
+
 </Project>

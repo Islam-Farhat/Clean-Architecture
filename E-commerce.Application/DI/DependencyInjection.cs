@@ -1,5 +1,4 @@
-﻿using E_commerce.Application.Mapper;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -23,7 +22,6 @@ namespace E_commerce.Application
 
             #region Inject Service
 
-            services.AddAutoMapper(typeof(EcommerceProfile));
 
             #endregion
 

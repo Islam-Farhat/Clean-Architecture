@@ -9,14 +9,11 @@ namespace E_commerce.Domian
 {
     public class Product
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public decimal Price { get; set; }
-        public int StockQuantity { get; set; }
-
-        [ForeignKey("Categories")]
-        public int CategoryId { get; set; }
-        public virtual Category Categories { get; set; }
+        public int Id { get; private set; }
+        public string Name { get; private set; }
+        public string Description { get; private set; }
+        public Money Price { get; private set; }
+        public int StockQuantity { get; private set; }
+        public int CategoryId { get; private set; }
     }
 }
