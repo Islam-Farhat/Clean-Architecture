@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace E_commerce.Domian
 {
-    public class ApplicationUser:IdentityUser
+    public class ApplicationUser : IdentityUser
     {
         public int Address { get; set; }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,11 @@ namespace E_commerce.Domian.Entities
 {
     public interface IEcommerceContext
     {
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Item> Items { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Order> Orders { get; set; }
+        public DbSet<Product> Product { get; set; }
+        public DbSet<Item> Item { get; set; }
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Order> Order { get; set; }
 
-        Task<int> SaveChangesAsync();
+        Task<Result> SaveChangesAsyncWithResult();
     }
 }

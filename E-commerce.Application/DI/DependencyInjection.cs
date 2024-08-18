@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using E_commerce.Domian.Entities;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -17,11 +18,6 @@ namespace E_commerce.Application
 
             // services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
              services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
-
-            #endregion
-
-            #region Inject Service
-
 
             #endregion
 

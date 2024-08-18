@@ -13,5 +13,19 @@ namespace E_commerce.Domian
         public Money Price { get; private set; }
         public int ProductId { get; private set; }
         public int OrderId { get; private set; }
+
+        public static Item Create(int quantity,string currency,decimal amount,int productId)
+        {
+            var money = new Money(currency, amount);
+
+            var item = new Item()
+            {
+                Quantity = quantity,
+                Price = money,
+                ProductId = productId
+            };
+
+            return item;
+        }
     }
 }

@@ -9,6 +9,6 @@ namespace E_commerce.Domian
 {
     public class ApplicationRole: IdentityRole
     {
-        public int TestRole { get; set; }
+        public int Description { get; set; }
     }
 }
