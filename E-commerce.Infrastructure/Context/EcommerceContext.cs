@@ -3,16 +3,18 @@ using E_commerce.Domian;
 using E_commerce.Domian.DomainEventHelper;
 using E_commerce.Domian.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace E_commerce.Infrastructure.Context
 {
-    public class EcommerceContext : DbContext, IEcommerceContext
+    public class EcommerceContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>, IEcommerceContext
     {
         private readonly IPublisher _publisher;
         public EcommerceContext(DbContextOptions<EcommerceContext> options, IPublisher publisher)
@@ -20,12 +22,13 @@ namespace E_commerce.Infrastructure.Context
         {
             _publisher = publisher;
         }
-        public DbSet<Product> Product { get; set; }
-        public DbSet<Item> Item { get; set; }
-        public DbSet<Category> Category { get; set; }
-        public DbSet<Order> Order { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Order> Orders { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            base.OnModelCreating(builder);
             builder.ApplyConfigurationsFromAssembly(typeof(EcommerceContext).Assembly);
         }
 

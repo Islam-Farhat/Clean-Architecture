@@ -29,7 +29,7 @@ namespace E_commerce.Application.Features.Orders
 
                 var order = Order.Create(request.orderNumber, DateTime.Now, items);
 
-                _context.Order.Add(order);
+                _context.Orders.Add(order);
 
                 var result = await _context.SaveChangesAsyncWithResult();
                 if (result.IsSuccess)

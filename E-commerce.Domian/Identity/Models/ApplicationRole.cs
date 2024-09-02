@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace E_commerce.Domian
 {
-    public class ApplicationRole: IdentityRole
+    public class ApplicationRole: IdentityRole<int>
     {
-        public int Description { get; set; }
+        public string Description { get; set; }
     }
 }
