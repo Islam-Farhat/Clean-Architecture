@@ -90,6 +90,7 @@ namespace E_commerce.API
                 app.UseSwaggerUI();
             }
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

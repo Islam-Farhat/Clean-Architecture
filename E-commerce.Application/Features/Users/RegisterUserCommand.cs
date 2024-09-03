@@ -36,7 +36,7 @@ namespace E_commerce.Application.Features.Users
             public async Task<Result<AuthResponseModel>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
             {
                 if (await _userManager.FindByEmailAsync(request.Email) != null)
-                    return Result.Failure<AuthResponseModel>("Email Exists");
+                    return Result.Failure<AuthResponseModel>("Email is already Exists");
 
                 if (await _userManager.FindByNameAsync(request.Username) is not null)
                     return Result.Failure<AuthResponseModel>("Username is already registered!");
