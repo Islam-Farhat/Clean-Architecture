@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using E_commerce.Application.Helper;
+using System.Security.Claims;
 
 namespace E_commerce.API
 {
@@ -56,6 +57,8 @@ namespace E_commerce.API
             .AddEntityFrameworkStores<EcommerceContext>();
             #endregion
 
+            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));//Mapping values to class
+
             #region Setup Bearer
             builder.Services.AddAuthentication(opt =>
             {
@@ -64,22 +67,19 @@ namespace E_commerce.API
             })
             .AddJwtBearer(o =>
             {
-                o.SaveToken = false;
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
                     ValidIssuer = builder.Configuration["JWT:Issuer"],
                     ValidAudience = builder.Configuration["JWT:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:key"]))
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:key"])),
+                    ClockSkew = TimeSpan.Zero
                 };
             });
-
             #endregion
-
-            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));//Mapping values to class
 
             var app = builder.Build();
 

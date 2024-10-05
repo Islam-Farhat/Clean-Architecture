@@ -1,11 +1,13 @@
 ﻿using E_commerce.Application.Features.Orders;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerce.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
+    [Route("api/[controller]")] 
     [ApiController]
     public class OrderController : ControllerBase
     {
@@ -32,6 +34,13 @@ namespace E_commerce.Presentation.Controllers
             }
 
             return Ok(result.Value);
+        }
+
+        [HttpGet]
+        [Route("MethodSecured")]
+        public async Task<IActionResult> MethodSecured()
+        {
+            return Ok("Hello from secured method.");
         }
     }
 }

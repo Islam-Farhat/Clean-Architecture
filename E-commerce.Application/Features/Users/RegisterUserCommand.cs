@@ -12,6 +12,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using E_commerce.Application.Helper;
 using Microsoft.Extensions.Options;
+using E_commerce.Domian.Entities;
+using System.Security.Cryptography;
 
 namespace E_commerce.Application.Features.Users
 {
@@ -77,7 +79,6 @@ namespace E_commerce.Application.Features.Users
 
             private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
             {
-                var s = _jwt.key;
                 var secretkey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration.GetSection("JWT:key").Value.ToString()));
 
                 var signcredentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256Signature);
@@ -105,6 +106,22 @@ namespace E_commerce.Application.Features.Users
                 return jwtSecurityToken;
             }
 
+
+            private RefreshToken GenerateRefreshToken()
+            {
+                var randomNumber = new byte[32];
+
+                using var generator = new RNGCryptoServiceProvider();
+
+                generator.GetBytes(randomNumber);
+
+                return new RefreshToken
+                {
+                    Token = Convert.ToBase64String(randomNumber),
+                    ExpiresOn = DateTime.UtcNow.AddDays(10),
+                    CreatedOn = DateTime.UtcNow
+                };
+            }
         }
     }
 }

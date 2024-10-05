@@ -1,4 +1,6 @@
-﻿namespace E_commerce.Domian
+﻿using System.Text.Json.Serialization;
+
+namespace E_commerce.Domian
 {
     public class AuthResponseModel
     {
@@ -9,6 +11,8 @@
         public List<string> Roles { get; set; }
         public string Token { get; set; }
         public DateTime ExpiresOn { get; set; }
-
+       // [JsonIgnore]
+        public string RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiration { get; set; }
     }
 }
