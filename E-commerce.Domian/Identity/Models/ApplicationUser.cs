@@ -11,6 +11,5 @@ namespace E_commerce.Domian
     public class ApplicationUser : IdentityUser<int>
     {
         public string Address { get; set; }
-        public List<RefreshToken>? RefreshTokens { get; set; }
     }
 }

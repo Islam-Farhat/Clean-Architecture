@@ -105,23 +105,6 @@ namespace E_commerce.Application.Features.Users
 
                 return jwtSecurityToken;
             }
-
-
-            private RefreshToken GenerateRefreshToken()
-            {
-                var randomNumber = new byte[32];
-
-                using var generator = new RNGCryptoServiceProvider();
-
-                generator.GetBytes(randomNumber);
-
-                return new RefreshToken
-                {
-                    Token = Convert.ToBase64String(randomNumber),
-                    ExpiresOn = DateTime.UtcNow.AddDays(10),
-                    CreatedOn = DateTime.UtcNow
-                };
-            }
         }
     }
 }
