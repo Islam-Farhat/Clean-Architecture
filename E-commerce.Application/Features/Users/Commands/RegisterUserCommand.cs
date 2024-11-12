@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 using E_commerce.Domian.Entities;
 using System.Security.Cryptography;
 
-namespace E_commerce.Application.Features.Users
+namespace E_commerce.Application.Features.Users.Commands
 {
     public class RegisterUserCommand : IRequest<Result<AuthResponseModel>>
     {
@@ -29,7 +29,7 @@ namespace E_commerce.Application.Features.Users
             private readonly UserManager<ApplicationUser> _userManager;
             private readonly IConfiguration _configuration;
             private readonly JWT _jwt;
-            public CreateUserCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration configuration,IOptions<JWT> jwt)
+            public CreateUserCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration configuration, IOptions<JWT> jwt)
             {
                 _userManager = userManager;
                 _configuration = configuration;
@@ -38,10 +38,10 @@ namespace E_commerce.Application.Features.Users
             public async Task<Result<AuthResponseModel>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
             {
                 if (await _userManager.FindByEmailAsync(request.Email) != null)
-                    return Result.Failure<AuthResponseModel>("Email is already Exists");
+                    return Failure<AuthResponseModel>("Email is already Exists");
 
                 if (await _userManager.FindByNameAsync(request.Username) is not null)
-                    return Result.Failure<AuthResponseModel>("Username is already registered!");
+                    return Failure<AuthResponseModel>("Username is already registered!");
 
                 var user = new ApplicationUser
                 {

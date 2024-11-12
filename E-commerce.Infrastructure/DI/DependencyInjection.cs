@@ -1,6 +1,8 @@
-﻿using E_commerce.Domian;
+﻿using E_commerce.Application.Services.Interfaces;
+using E_commerce.Domian;
 using E_commerce.Domian.Entities;
 using E_commerce.Infrastructure.Context;
+using E_commerce.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +24,11 @@ namespace E_commerce.Infrastructure
             var connectionstring = configuration.GetConnectionString("ECORead");
             services.AddDbContext<EcommerceContext>(option => option.UseSqlServer(connectionstring));
 
-            services.AddScoped<IEcommerceContext , EcommerceContext>();
+            services.AddScoped<IEcommerceContext, EcommerceContext>();
 
             #endregion
+
+            services.AddScoped<ITokenService, TokenService>();
 
             return services;
         }

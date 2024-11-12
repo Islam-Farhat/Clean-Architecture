@@ -69,14 +69,14 @@ namespace E_commerce.API
             {
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    ValidateIssuer = true,
                     ValidAudience = builder.Configuration["JWT:Audience"],
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = false,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:key"])),
-                    ClockSkew = TimeSpan.Zero
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.FromMinutes(1)//buffer token to become valid after expiration to 1 minute
                 };
             });
             #endregion

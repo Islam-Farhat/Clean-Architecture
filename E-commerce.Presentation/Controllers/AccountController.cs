@@ -1,4 +1,5 @@
-﻿using E_commerce.Application.Features.Users;
+﻿using E_commerce.Application.Features.Users.Commands;
+using E_commerce.Application.Features.Users.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -24,10 +25,34 @@ namespace E_commerce.Presentation.Controllers
         }
 
         [HttpPost]
-        [Route("RegisterUserAsync")]
+        [Route("register-user")]
         public async Task<IActionResult> RegisterUserAsync(RegisterUserCommand user)
         {
             var result = await _mediator.Send(user);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(result.Error);
+        }
+
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> LoginUser([FromBody] LoginUserCommand user)
+        {
+            var result = await _mediator.Send(user);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(result.Error);
+        }
+
+        [HttpPost]
+        [Route("refresh-token")]
+        public async Task<ActionResult<AuthenticationResponseDto>> Refresh([FromBody] RefreshTokenCommand command)
+        {
+            var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
                 return Ok(result.Value);
