@@ -3,6 +3,7 @@ using E_commerce.Domian;
 using E_commerce.Domian.DomainEventHelper;
 using E_commerce.Domian.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -29,6 +30,15 @@ namespace E_commerce.Infrastructure.Context
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<IdentityUser>(entity => { entity.ToTable(name: "Users"); });
+            builder.Entity<IdentityRole>(entity => { entity.ToTable(name: "Roles"); });
+            builder.Entity<IdentityUserRole<int>>(entity => { entity.ToTable(name: "UserRoles"); });
+            builder.Entity<IdentityUserClaim<int>>(entity => { entity.ToTable(name: "UserClaims"); });
+            builder.Entity<IdentityUserLogin<int>>(entity => { entity.ToTable(name: "UserLogins"); });
+            builder.Entity<IdentityRoleClaim<int>>(entity => { entity.ToTable(name: "RoleClaims"); });
+            builder.Entity<IdentityUserToken<int>>(entity => { entity.ToTable(name: "UserTokens"); });
+
             builder.ApplyConfigurationsFromAssembly(typeof(EcommerceContext).Assembly);
         }
 

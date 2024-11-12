@@ -13,6 +13,7 @@ namespace E_commerce.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<Order> builder)
         {
+            builder.ToTable("TA_Orders");
             builder.HasKey(x => x.Id);
             builder.HasMany(x=>x.Items).WithOne().HasForeignKey(x=>x.OrderId);
         }

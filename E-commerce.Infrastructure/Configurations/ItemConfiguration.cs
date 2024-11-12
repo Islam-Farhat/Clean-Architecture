@@ -13,6 +13,8 @@ namespace E_commerce.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<Item> builder)
         {
+            builder.ToTable("TA_Items");
+
             builder.HasKey(x => x.Id);
 
             builder.OwnsOne(x => x.Price, moneyBuilder =>
