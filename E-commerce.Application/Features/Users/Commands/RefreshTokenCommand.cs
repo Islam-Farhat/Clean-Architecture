@@ -23,12 +23,12 @@ namespace E_commerce.Application.Features.Users.Commands
 
         private class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthenticationResponseDto>>
         {
-            private readonly IEcommerceContext _context;
+            private readonly IGetCleanerContext _context;
             private readonly UserManager<ApplicationUser> _userManager;
             private readonly ITokenService _tokenService;
             private readonly TimeProvider _datetime;
 
-            public RefreshTokenCommandHandler(IEcommerceContext context, UserManager<ApplicationUser> userManager, ITokenService tokenService, TimeProvider datetime)
+            public RefreshTokenCommandHandler(IGetCleanerContext context, UserManager<ApplicationUser> userManager, ITokenService tokenService, TimeProvider datetime)
             {
                 _context = context;
                 _userManager = userManager;

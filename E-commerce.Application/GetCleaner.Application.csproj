@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\E-commerce.Domian\E-commerce.Domian.csproj" />
+    <ProjectReference Include="..\E-commerce.Domian\GetCleaner.Domian.csproj" />
   </ItemGroup>
 
 </Project>

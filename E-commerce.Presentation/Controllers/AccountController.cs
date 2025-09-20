@@ -31,7 +31,7 @@ namespace E_commerce.Presentation.Controllers
             var result = await _mediator.Send(user);
 
             if (result.IsSuccess)
-                return Ok(result.Value);
+                return Ok();
 
             return BadRequest(result.Error);
         }

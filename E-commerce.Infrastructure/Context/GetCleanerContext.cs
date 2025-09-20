@@ -15,31 +15,27 @@ using System.Threading.Tasks;
 
 namespace E_commerce.Infrastructure.Context
 {
-    public class EcommerceContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>, IEcommerceContext
+    public class GetCleanerContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>, IGetCleanerContext
     {
         private readonly IPublisher _publisher;
-        public EcommerceContext(DbContextOptions<EcommerceContext> options, IPublisher publisher)
+        public GetCleanerContext(DbContextOptions<GetCleanerContext> options, IPublisher publisher)
         : base(options)
         {
             _publisher = publisher;
         }
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Item> Items { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Order> Orders { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<IdentityUser>(entity => { entity.ToTable(name: "Users"); });
-            builder.Entity<IdentityRole>(entity => { entity.ToTable(name: "Roles"); });
+            builder.Entity<ApplicationUser>(entity => { entity.ToTable(name: "Users"); });
+            builder.Entity<ApplicationRole>(entity => { entity.ToTable(name: "Roles"); });
             builder.Entity<IdentityUserRole<int>>(entity => { entity.ToTable(name: "UserRoles"); });
             builder.Entity<IdentityUserClaim<int>>(entity => { entity.ToTable(name: "UserClaims"); });
             builder.Entity<IdentityUserLogin<int>>(entity => { entity.ToTable(name: "UserLogins"); });
             builder.Entity<IdentityRoleClaim<int>>(entity => { entity.ToTable(name: "RoleClaims"); });
             builder.Entity<IdentityUserToken<int>>(entity => { entity.ToTable(name: "UserTokens"); });
 
-            builder.ApplyConfigurationsFromAssembly(typeof(EcommerceContext).Assembly);
+            builder.ApplyConfigurationsFromAssembly(typeof(GetCleanerContext).Assembly);
         }
 
         public async Task<Result> SaveChangesAsyncWithResult()

@@ -1,7 +1,9 @@
-﻿using E_commerce.Application.Services.Interfaces;
+﻿using E_commerce.Application.Interfaces;
+using E_commerce.Application.Services.Interfaces;
 using E_commerce.Domian;
 using E_commerce.Domian.Entities;
 using E_commerce.Infrastructure.Context;
+using E_commerce.Infrastructure.Seeding;
 using E_commerce.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,9 +24,10 @@ namespace E_commerce.Infrastructure
             #region Database
 
             var connectionstring = configuration.GetConnectionString("ECORead");
-            services.AddDbContext<EcommerceContext>(option => option.UseSqlServer(connectionstring));
+            services.AddDbContext<GetCleanerContext>(option => option.UseSqlServer(connectionstring));
 
-            services.AddScoped<IEcommerceContext, EcommerceContext>();
+            services.AddScoped<IGetCleanerContext, GetCleanerContext>();
+            services.AddScoped<IRoleSeedService, RoleSeedService>();
 
             #endregion
 

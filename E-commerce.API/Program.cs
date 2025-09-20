@@ -10,12 +10,14 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using E_commerce.Application.Helper;
 using System.Security.Claims;
+using E_commerce.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_commerce.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -54,10 +56,10 @@ namespace E_commerce.API
                 options.Password.RequiredLength = 4;
                 options.Password.RequiredUniqueChars = 0;
             })
-            .AddEntityFrameworkStores<EcommerceContext>();
+            .AddEntityFrameworkStores<GetCleanerContext>();
             #endregion
 
-            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));//Mapping values to class
+            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));//Mapping values to class option pattern
 
             #region Setup Bearer
             builder.Services.AddAuthentication(opt =>
@@ -97,6 +99,34 @@ namespace E_commerce.API
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             app.MapControllers();
+
+            // Apply migrations and seed roles during startup
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<GetCleanerContext>();
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+
+                    // Apply migrations
+                    logger.LogInformation("Applying database migrations...");
+                    context.Database.Migrate();
+                    logger.LogInformation("Database migrations applied successfully.");
+
+                    // Seed roles
+                    var roleSeedService = services.GetRequiredService<IRoleSeedService>();
+                    logger.LogInformation("Seeding roles...");
+                    await roleSeedService.SeedRolesAsync();
+                    logger.LogInformation("Roles seeded successfully.");
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred while applying migrations or seeding roles.");
+                    throw; // Optionally rethrow or handle differently based on your requirements
+                }
+            }
 
             app.Run();
         }

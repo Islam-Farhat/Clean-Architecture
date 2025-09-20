@@ -14,34 +14,47 @@ using E_commerce.Application.Helper;
 using Microsoft.Extensions.Options;
 using E_commerce.Domian.Entities;
 using System.Security.Cryptography;
+using E_commerce.Domian.Enums;
 
 namespace E_commerce.Application.Features.Users.Commands
 {
-    public class RegisterUserCommand : IRequest<Result<AuthResponseModel>>
+    public class RegisterUserCommand : IRequest<Result>
     {
         public string Address { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+        public int Role { get; set; }
 
-        public class CreateUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<AuthResponseModel>>
+
+        public class CreateUserCommandHandler : IRequestHandler<RegisterUserCommand, Result>
         {
             private readonly UserManager<ApplicationUser> _userManager;
+            private readonly RoleManager<ApplicationRole> _roleManager;
             private readonly IConfiguration _configuration;
             private readonly JWT _jwt;
-            public CreateUserCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration configuration, IOptions<JWT> jwt)
+            public CreateUserCommandHandler(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IConfiguration configuration, IOptions<JWT> jwt)
             {
                 _userManager = userManager;
+                _roleManager = roleManager;
                 _configuration = configuration;
                 _jwt = jwt.Value;
             }
-            public async Task<Result<AuthResponseModel>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+            public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
             {
+                if (!Enum.IsDefined(typeof(RoleSystem), request.Role))
+                    return Result.Failure($"Invalid role.");
+
+                var roleName = ((RoleSystem)request.Role).ToString();
+
+                if (!await _roleManager.RoleExistsAsync(roleName))
+                    return Result.Failure($"Role {roleName} does not exist");
+
                 if (await _userManager.FindByEmailAsync(request.Email) != null)
-                    return Failure<AuthResponseModel>("Email is already Exists");
+                    return Failure("Email is already Exists");
 
                 if (await _userManager.FindByNameAsync(request.Username) is not null)
-                    return Failure<AuthResponseModel>("Username is already registered!");
+                    return Failure("Username is already registered!");
 
                 var user = new ApplicationUser
                 {
@@ -54,27 +67,18 @@ namespace E_commerce.Application.Features.Users.Commands
 
                 if (!result.Succeeded)
                 {
-                    var errors = string.Empty;
-
-                    foreach (var error in result.Errors)
-                        errors += $"{error.Description},";
-
-                    return new AuthResponseModel { Message = errors };
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return Result.Failure(errors);
+                }
+                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(user);
+                    var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    return Result.Failure($"Failed to assign role: {errors}");
                 }
 
-                await _userManager.AddToRoleAsync(user, "User");
-
-                var jwtSecurityToken = await CreateJwtToken(user);
-
-                return new AuthResponseModel
-                {
-                    Email = user.Email,
-                    ExpiresOn = jwtSecurityToken.ValidTo,
-                    IsAuthenticated = true,
-                    Roles = new List<string> { "User" },
-                    Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                    Username = user.UserName
-                };
+                return Result.Success();
             }
 
             private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)

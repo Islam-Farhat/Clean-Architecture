@@ -22,11 +22,11 @@ namespace E_commerce.Application.Features.Users.Commands
 
         private class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<AuthenticationResponseDto>>
         {
-            private readonly IEcommerceContext _context;
+            private readonly IGetCleanerContext _context;
             private readonly UserManager<ApplicationUser> _userManager;
             private readonly ITokenService _tokenService;
 
-            public LoginUserCommandHandler(IEcommerceContext context, UserManager<ApplicationUser> userManager, ITokenService tokenService)
+            public LoginUserCommandHandler(IGetCleanerContext context, UserManager<ApplicationUser> userManager, ITokenService tokenService)
             {
                 _context = context;
                 _userManager = userManager;
@@ -37,11 +37,11 @@ namespace E_commerce.Application.Features.Users.Commands
             {
                 var user = await _userManager.FindByEmailAsync(request.Email);
                 if (user == null)
-                    return Result.Failure<AuthenticationResponseDto>($"Email {request.Email} is not registered");
+                    return Result.Failure<AuthenticationResponseDto>($"Wrong email or password");
 
                 var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
                 if (!isPasswordValid)
-                    return Result.Failure<AuthenticationResponseDto>($"Password is wrong");
+                    return Result.Failure<AuthenticationResponseDto>($"Wrong email or password");
 
                 var claims = new List<Claim>
                         {
