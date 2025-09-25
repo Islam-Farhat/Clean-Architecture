@@ -20,9 +20,8 @@ namespace E_commerce.Application.Features.Users.Commands
 {
     public class RegisterUserCommand : IRequest<Result>
     {
-        public string Address { get; set; }
+        public string PhoneNumber { get; set; }
         public string Username { get; set; }
-        public string Email { get; set; }
         public string Password { get; set; }
         public int Role { get; set; }
 
@@ -50,8 +49,8 @@ namespace E_commerce.Application.Features.Users.Commands
                 if (!await _roleManager.RoleExistsAsync(roleName))
                     return Result.Failure($"Role {roleName} does not exist");
 
-                if (await _userManager.FindByEmailAsync(request.Email) != null)
-                    return Failure("Email is already Exists");
+                //if (await _userManager.FindByEmailAsync(request.Email) != null)
+                //    return Failure("Email is already Exists");
 
                 if (await _userManager.FindByNameAsync(request.Username) is not null)
                     return Failure("Username is already registered!");
@@ -59,8 +58,8 @@ namespace E_commerce.Application.Features.Users.Commands
                 var user = new ApplicationUser
                 {
                     UserName = request.Username,
-                    Email = request.Email,
-                    Address = request.Address
+                    Email = request.Username,
+                    PhoneNumber = request.PhoneNumber
                 };
 
                 var result = await _userManager.CreateAsync(user, request.Password);

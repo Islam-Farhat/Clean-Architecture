@@ -17,7 +17,7 @@ namespace E_commerce.Application.Features.Users.Commands
 {
     public class LoginUserCommand : IRequest<Result<AuthenticationResponseDto>>
     {
-        public string Email { get; init; }
+        public string Username { get; init; }
         public string Password { get; init; }
 
         private class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<AuthenticationResponseDto>>
@@ -35,7 +35,7 @@ namespace E_commerce.Application.Features.Users.Commands
 
             public async Task<Result<AuthenticationResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
             {
-                var user = await _userManager.FindByEmailAsync(request.Email);
+                var user = await _userManager.FindByEmailAsync(request.Username);
                 if (user == null)
                     return Result.Failure<AuthenticationResponseDto>($"Wrong email or password");
 
