@@ -71,9 +71,14 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpGet]
         [Route("getHousemaids")]
-        public async Task<IActionResult> getHousemaids()
+        public async Task<IActionResult> getHousemaids(int skip = 0, int take = 10, string searchParam = "")
         {
-            var result = await _mediator.Send(new GetHousemaidsCommand());
+            var result = await _mediator.Send(new GetHousemaidsCommand()
+            {
+                Take = take,
+                SearchParam = searchParam,
+                Skip = skip,
+            });
 
             return Ok(result);
         }

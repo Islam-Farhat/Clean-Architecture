@@ -58,6 +58,53 @@ namespace E_commerce.Infrastructure.Services
             }
         }
 
+        public async Task<Result> DeleteImage(string filePath)
+        {
+            try
+            {
+                // Input validation
+                if (string.IsNullOrWhiteSpace(filePath))
+                    return Result.Failure("File path is required");
+
+                // Handle relative path or full URL
+                string relativePath = filePath.StartsWith("http")
+                    ? filePath.Substring(filePath.IndexOf("ImageBank/"))
+                    : filePath;
+
+                // Construct full file system path
+                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath.TrimStart('/'));
+
+                // Check if file exists
+                if (!File.Exists(fullPath))
+                {
+                    // File not found is not treated as an error to avoid failing dependent operations
+                    return Result.Success();
+                }
+
+                // Delete the file
+                File.Delete(fullPath);
+
+                // Verify deletion (optional, to ensure file is gone)
+                await Task.Delay(100); // Brief delay for file system consistency
+                if (File.Exists(fullPath))
+                {
+                    return Result.Failure("Failed to delete the file");
+                }
+
+                return Result.Success();
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Failed to delete file: {ex.Message}");
+                return Result.Failure($"Failed to delete file: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error during file deletion: {ex.Message}");
+                return Result.Failure("Unexpected error during file deletion");
+            }
+        }
+
         private string CleanBase64String(string base64String)
         {
             if (base64String.Contains("base64,"))

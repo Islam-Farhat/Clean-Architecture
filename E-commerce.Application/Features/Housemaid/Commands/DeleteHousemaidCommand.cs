@@ -38,6 +38,16 @@ namespace E_commerce.Application.Features.Housemaid.Commands
                 if (saveResult.IsFailure)
                     return Result.Failure<int>("Save Error");
 
+                if (!string.IsNullOrWhiteSpace(housemaid.ImageUrl))
+                {
+                    var deleteResult = await _mediaService.DeleteImage($"ImageBank\\Housemaid\\{housemaid.ImageUrl}");
+                    if (deleteResult.IsFailure)
+                    {
+                        // Log the failure but proceed with deletion (optional)
+                        System.Diagnostics.Debug.WriteLine($"Failed to delete image: {deleteResult.Error}");
+                    }
+                }
+
                 return Result.Success();
 
             }

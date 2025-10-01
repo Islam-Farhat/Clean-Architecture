@@ -15,6 +15,9 @@ namespace E_commerce.Application.Features.Housemaid.Queries
 {
     public class GetHousemaidsCommand : IRequest<List<GetHousemaidDto>>
     {
+        public int Skip { get; set; }
+        public int Take { get; set; }
+        public string SearchParam { get; set; } = string.Empty;
         public class GetHousemaidsCommandHandler : IRequestHandler<GetHousemaidsCommand, List<GetHousemaidDto>>
         {
             private readonly IMediaService _mediaService;
@@ -30,14 +33,21 @@ namespace E_commerce.Application.Features.Housemaid.Queries
             {
                 var baseUrl = _configuration["GetCleaner:BaseUrl"];
 
-                var housemaids = await _context.Housemaids.Select(x => new GetHousemaidDto
+                var housemaidsQuery = _context.Housemaids.Select(x => new GetHousemaidDto
                 {
                     Id = x.Id,
                     Name = x.Name,
                     Address = x.Address,
                     PhoneNumber = x.PhoneNumber,
                     ImagePath = $"{baseUrl}ImageBank/Housemaid/{x.ImageUrl}"
-                }).ToListAsync();
+                });
+
+                if (!string.IsNullOrWhiteSpace(request.SearchParam))
+                    housemaidsQuery = housemaidsQuery.Where(x => x.Name.Contains(request.SearchParam) || x.PhoneNumber.Contains(request.SearchParam) || x.Address.Contains(request.SearchParam));
+
+                var housemaids = await housemaidsQuery
+                                            .Skip(request.Skip)
+                                            .Take(request.Take).ToListAsync();
 
                 return housemaids;
             }

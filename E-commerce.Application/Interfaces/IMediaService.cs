@@ -10,5 +10,6 @@ namespace E_commerce.Application.Interfaces
     public interface IMediaService
     {
         Task<Result<string>> UploadImage(string imageBase64, string path);
+        Task<Result> DeleteImage(string filePath);
     }
 }
