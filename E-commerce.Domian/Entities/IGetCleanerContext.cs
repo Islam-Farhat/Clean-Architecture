@@ -10,6 +10,7 @@ namespace E_commerce.Domian.Entities
 {
     public interface IGetCleanerContext
     {
+        public DbSet<Housemaid> Housemaids { get; set; }
         Task<Result> SaveChangesAsyncWithResult();
     }
 }

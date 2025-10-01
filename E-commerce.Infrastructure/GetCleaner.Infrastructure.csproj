@@ -18,8 +18,4 @@
     <ProjectReference Include="..\E-commerce.Domian\GetCleaner.Domian.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Configurations\" />
-  </ItemGroup>
-
 </Project>

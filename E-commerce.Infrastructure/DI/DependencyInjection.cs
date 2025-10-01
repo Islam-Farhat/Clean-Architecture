@@ -28,6 +28,7 @@ namespace E_commerce.Infrastructure
 
             services.AddScoped<IGetCleanerContext, GetCleanerContext>();
             services.AddScoped<IRoleSeedService, RoleSeedService>();
+            services.AddScoped<IMediaService, MediaService>();
 
             #endregion
 

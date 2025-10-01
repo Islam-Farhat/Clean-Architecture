@@ -22,6 +22,7 @@ namespace E_commerce.Infrastructure.Context
         : base(options)
         {
             _publisher = publisher;
+            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -38,6 +39,10 @@ namespace E_commerce.Infrastructure.Context
             builder.ApplyConfigurationsFromAssembly(typeof(GetCleanerContext).Assembly);
         }
 
+        public DbSet<Housemaid> Housemaids { get; set; }
+
+
+
         public async Task<Result> SaveChangesAsyncWithResult()
         {
             try
@@ -51,7 +56,6 @@ namespace E_commerce.Infrastructure.Context
                 return Result.Failure(exp.Message);
             }
         }
-
         private async Task FirePostDomainEvents()
         {
             var domainEvents = ChangeTracker.Entries<Domian.DomainEventHelper.Entity>()

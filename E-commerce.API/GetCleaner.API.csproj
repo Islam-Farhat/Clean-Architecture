@@ -30,4 +30,8 @@
     <ProjectReference Include="..\E-commerce.Presentation\GetCleaner.Presentation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ImageBank\" />
+  </ItemGroup>
+
 </Project>
