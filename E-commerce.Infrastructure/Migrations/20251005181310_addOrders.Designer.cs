@@ -4,6 +4,7 @@ using E_commerce.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_commerce.Infrastructure.Migrations
 {
     [DbContext(typeof(GetCleanerContext))]
-    partial class GetCleanerContextModelSnapshot : ModelSnapshot
+    [Migration("20251005181310_addOrders")]
+    partial class addOrders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,9 +218,6 @@ namespace E_commerce.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("DriverId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -228,8 +228,6 @@ namespace E_commerce.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DriverId");
 
                     b.HasIndex("OrderId");
 
@@ -352,17 +350,11 @@ namespace E_commerce.Infrastructure.Migrations
 
             modelBuilder.Entity("E_commerce.Domian.Entities.WorkingDay", b =>
                 {
-                    b.HasOne("E_commerce.Domian.ApplicationUser", "Driver")
-                        .WithMany("Workdays")
-                        .HasForeignKey("DriverId");
-
                     b.HasOne("E_commerce.Domian.Entities.Order", "Order")
                         .WithMany("WorkingDays")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Driver");
 
                     b.Navigation("Order");
                 });
@@ -416,11 +408,6 @@ namespace E_commerce.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("E_commerce.Domian.ApplicationUser", b =>
-                {
-                    b.Navigation("Workdays");
                 });
 
             modelBuilder.Entity("E_commerce.Domian.Entities.Order", b =>

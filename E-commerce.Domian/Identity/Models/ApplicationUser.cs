@@ -13,7 +13,7 @@ namespace E_commerce.Domian
         public string PhoneNumber { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
-
+         public ICollection<WorkingDay> Workdays { get; set; }
 
         public void UpdateRefreshToken(string newRefreshToken, DateTime refreshTokenExpiryTime)
         {

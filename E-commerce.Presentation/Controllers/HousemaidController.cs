@@ -1,6 +1,7 @@
 ﻿using E_commerce.Application.Features.Housemaid.Commands;
 using E_commerce.Application.Features.Housemaid.Queries;
 using E_commerce.Application.Features.Housemaids.Commands;
+using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -78,6 +79,19 @@ namespace E_commerce.Presentation.Controllers
                 Take = take,
                 SearchParam = searchParam,
                 Skip = skip,
+            });
+
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("getAvailableHousemaids")]
+        public async Task<IActionResult> getHousemaids(ShiftType Shift,[FromQuery] List<DateTime> workingDays)
+        {
+            var result = await _mediator.Send(new GetAvailableHousemaidsQuery()
+            {
+                Shift = Shift,
+                WorkingDays = workingDays
             });
 
             return Ok(result);

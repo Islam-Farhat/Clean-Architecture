@@ -40,6 +40,8 @@ namespace E_commerce.Infrastructure.Context
         }
 
         public DbSet<Housemaid> Housemaids { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<WorkingDay> WorkingDays { get; set; }
 
 
 
