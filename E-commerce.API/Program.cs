@@ -12,6 +12,7 @@ using E_commerce.Application.Helper;
 using System.Security.Claims;
 using E_commerce.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 namespace E_commerce.API
 {
@@ -84,7 +85,13 @@ namespace E_commerce.API
             #endregion
             builder.Services.AddHttpContextAccessor();
             var app = builder.Build();
-            app.UseStaticFiles();
+          //  app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+               Path.Combine(builder.Environment.ContentRootPath, "ImageBank")),
+                RequestPath = "/ImageBank"
+            });
 
             app.UseSwagger();
             app.UseSwaggerUI();

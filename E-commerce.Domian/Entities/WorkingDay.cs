@@ -37,5 +37,10 @@ namespace E_commerce.Domian.Entities
             this.DriverId = driverId; 
             return Result.Success();
         }
+
+        public void Delete()
+        {
+            IsDeleted = true;
+        }
     }
 }

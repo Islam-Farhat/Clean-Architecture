@@ -26,12 +26,12 @@ namespace E_commerce.Application.Features.Orders.Commands
             }
             public async Task<Result> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
             {
-                var order = await _context.Orders.Include(x => x.WorkingDays).FirstOrDefaultAsync(x => x.Id == request.Id);
+                var order = await _context.Orders.AsTracking().Include(x => x.WorkingDays).FirstOrDefaultAsync(x => x.Id == request.Id);
 
                 if (order == null)
                     return Result.Failure("Order not exists!");
 
-                _context.Orders.Remove(order);
+                order.Delete();
                 var saveResult = await _context.SaveChangesAsyncWithResult();
 
                 if (saveResult.IsFailure)

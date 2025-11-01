@@ -32,7 +32,7 @@ namespace E_commerce.Application.Features.Orders.Queries
             {
                 var baseUrl = _configuration["GetCleaner:BaseUrl"];
 
-                var orderQuery = _context.WorkingDays.Where(x=>x.WorkingDate.Date >= DateTime.UtcNow.Date).OrderBy(x=>x.WorkingDate).AsQueryable();
+                var orderQuery = _context.WorkingDays.Where(x=>x.WorkingDate.Date >= DateTime.UtcNow.Date && !x.IsDeleted).OrderBy(x=>x.WorkingDate).AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(request.SearchParam))
                     orderQuery = orderQuery.Where(x => x.Order.ApartmentNumber.Contains(request.SearchParam) ||

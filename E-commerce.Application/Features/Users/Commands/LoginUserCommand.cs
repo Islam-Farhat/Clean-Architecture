@@ -43,11 +43,13 @@ namespace E_commerce.Application.Features.Users.Commands
                 if (!isPasswordValid)
                     return Result.Failure<AuthenticationResponseDto>($"Wrong email or password");
 
+                var userRoles = await _userManager.GetRolesAsync(user);
+
                 var claims = new List<Claim>
                         {
-                            new (ClaimTypes.NameIdentifier, user.Id.ToString()),
-                            new (ClaimTypes.Name, $"{user.UserName}"),
-                            new (ClaimTypes.Email, user.Email!)
+                            new ("UserId", user.Id.ToString()),
+                            new ("UserName", $"{user.UserName}"),
+                            new ("Role", userRoles?.FirstOrDefault())
                         };
 
                 var accessToken = _tokenService.GenerateAccessToken(claims);

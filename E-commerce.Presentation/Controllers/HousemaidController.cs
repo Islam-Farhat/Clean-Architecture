@@ -86,12 +86,13 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpGet]
         [Route("getAvailableHousemaids")]
-        public async Task<IActionResult> getHousemaids(ShiftType Shift,[FromQuery] List<DateTime> workingDays)
+        public async Task<IActionResult> getHousemaids(ShiftType Shift, OrderType orderType, [FromQuery] List<DateTime> workingDays)
         {
             var result = await _mediator.Send(new GetAvailableHousemaidsQuery()
             {
                 Shift = Shift,
-                WorkingDays = workingDays
+                WorkingDays = workingDays,
+                OrderType = orderType
             });
 
             return Ok(result);

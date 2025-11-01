@@ -72,5 +72,14 @@ namespace E_commerce.Domian.Entities
 
             return Result.Success();
         }
+
+        public void Delete()
+        {
+            this.IsDeleted = true;
+            foreach (var workingDay in this.WorkingDays)
+            {
+                workingDay.Delete();
+            }
+        }
     }
 }

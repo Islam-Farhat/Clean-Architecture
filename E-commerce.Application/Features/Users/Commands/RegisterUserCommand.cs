@@ -49,8 +49,6 @@ namespace E_commerce.Application.Features.Users.Commands
                 if (!await _roleManager.RoleExistsAsync(roleName))
                     return Result.Failure($"Role {roleName} does not exist");
 
-                //if (await _userManager.FindByEmailAsync(request.Email) != null)
-                //    return Failure("Email is already Exists");
 
                 if (await _userManager.FindByNameAsync(request.Username) is not null)
                     return Failure("Username is already registered!");
