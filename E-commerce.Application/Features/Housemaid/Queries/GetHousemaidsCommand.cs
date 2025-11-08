@@ -39,7 +39,7 @@ namespace E_commerce.Application.Features.Housemaid.Queries
                     Name = x.Name,
                     Address = x.Address,
                     PhoneNumber = x.PhoneNumber,
-                    ImagePath = $"{baseUrl}ImageBank/Housemaid/{x.ImageUrl}"
+                    ImagePath = string.IsNullOrWhiteSpace(x.ImageUrl) ? string.Empty : $"{baseUrl}ImageBank/Housemaid/{x.ImageUrl}"
                 });
 
                 if (!string.IsNullOrWhiteSpace(request.SearchParam))
