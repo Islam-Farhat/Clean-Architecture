@@ -67,12 +67,12 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpPost]
         [Route("AssignOrderToDriver")]
-        public async Task<IActionResult> AddNewOrder(int driverId, int orderId)
+        public async Task<IActionResult> AssignOrderToDriver(int driverId, int workingId)
         {
             var result = await _mediator.Send(new AssignOrderToDriverCommand
             {
                 DriverId = driverId,
-                WorkingOrderId = orderId
+                WorkingOrderId = workingId
             });
 
             if (result.IsSuccess)

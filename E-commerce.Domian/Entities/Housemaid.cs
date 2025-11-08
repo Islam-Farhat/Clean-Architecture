@@ -14,21 +14,19 @@ namespace E_commerce.Domian.Entities
         public string Name { get; set; }
         public string Address { get; set; }
         public string PhoneNumber { get; set; }
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
 
-        public static Result<Housemaid> Instance(string name, string address, string phoneNumber, string imageUrl)
+        public static Result<Housemaid> Instance(string name, string address, string phoneNumber)
         {
             if (string.IsNullOrWhiteSpace(name)) return Result.Failure<Housemaid>("Name empty!");
             if (string.IsNullOrWhiteSpace(address)) return Result.Failure<Housemaid>("Address empty!");
             if (string.IsNullOrWhiteSpace(phoneNumber)) return Result.Failure<Housemaid>("PhoneNumber empty!");
-            if (string.IsNullOrWhiteSpace(imageUrl)) return Result.Failure<Housemaid>("Image empty!");
 
             var housemaid = new Housemaid()
             {
                 Address = address,
                 PhoneNumber = phoneNumber,
-                ImageUrl = imageUrl,
-                Name = name,
+                Name = name
             };
 
             return housemaid;

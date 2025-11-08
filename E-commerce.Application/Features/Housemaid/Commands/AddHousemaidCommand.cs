@@ -15,7 +15,7 @@ namespace E_commerce.Application.Features.Housemaids.Commands
         public string Name { get; set; }
         public string Address { get; set; }
         public string PhoneNumber { get; set; }
-        public string ImageBase64 { get; set; }
+        public string? ImageBase64 { get; set; }
 
 
         public class AddHousemaidCommandHandler : IRequestHandler<AddHousemaidCommand, Result<int>>
@@ -30,11 +30,17 @@ namespace E_commerce.Application.Features.Housemaids.Commands
 
             public async Task<Result<int>> Handle(AddHousemaidCommand request, CancellationToken cancellationToken)
             {
-                var fileName = await _mediaService.UploadImage(request.ImageBase64, "ImageBank/Housemaid");
-                if (string.IsNullOrWhiteSpace(fileName.Value))
-                    return Result.Failure<int>("Upload Image Failed");
 
-                var housemaid = Domian.Entities.Housemaid.Instance(request.Name, request.Address, request.PhoneNumber, fileName.Value);
+                var housemaid = Domian.Entities.Housemaid.Instance(request.Name, request.Address, request.PhoneNumber);
+
+                if (!string.IsNullOrWhiteSpace(request.ImageBase64) )
+                {
+                    var fileName = await _mediaService.UploadImage(request.ImageBase64, "ImageBank/Housemaid");
+                    if (string.IsNullOrWhiteSpace(fileName.Value))
+                        return Result.Failure<int>("Upload Image Failed");
+
+                    housemaid.Value.UpdateImage(fileName.Value);
+                }
 
                 if (housemaid.IsFailure)
                     return Result.Failure<int>(housemaid.Error);

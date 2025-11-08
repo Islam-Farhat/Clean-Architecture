@@ -14,6 +14,7 @@ namespace E_commerce.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Housemaid> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.ImageUrl).HasDefaultValue("");
         }
     }
 }

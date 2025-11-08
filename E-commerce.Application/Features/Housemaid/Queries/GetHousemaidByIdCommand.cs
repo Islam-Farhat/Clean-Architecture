@@ -32,13 +32,13 @@ namespace E_commerce.Application.Features.Housemaid.Queries
             {
                 var baseUrl = _configuration["GetCleaner:BaseUrl"];
 
-                var housemaid = await _context.Housemaids.Select(x=>new GetHousemaidDto
+                var housemaid = await _context.Housemaids.Select(x => new GetHousemaidDto
                 {
                     Id = x.Id,
                     Name = x.Name,
                     Address = x.Address,
                     PhoneNumber = x.PhoneNumber,
-                    ImagePath = $"{baseUrl}ImageBank/Housemaid/{x.ImageUrl}"
+                    ImagePath = string.IsNullOrWhiteSpace(x.ImageUrl) ? string.Empty : $"{baseUrl}ImageBank/Housemaid/{x.ImageUrl}"
                 }).FirstOrDefaultAsync(x => x.Id == request.Id);
 
                 if (housemaid == null)

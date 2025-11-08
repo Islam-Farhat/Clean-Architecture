@@ -36,7 +36,7 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpPut]
         [Route("update")]
-        public async Task<IActionResult> Create(UpdateHousemaidCommand updateHousemaid)
+        public async Task<IActionResult> Update(UpdateHousemaidCommand updateHousemaid)
         {
             var result = await _mediator.Send(updateHousemaid);
 
@@ -93,6 +93,19 @@ namespace E_commerce.Presentation.Controllers
                 Shift = Shift,
                 WorkingDays = workingDays,
                 OrderType = orderType
+            });
+
+            return Ok(result);
+        }
+        
+        [HttpGet]
+        [Route("getWorkingDayForHousemaid")]
+        public async Task<IActionResult> getWorkingDayForHousemaid(int housemaidId ,ShiftType Shift)
+        {
+            var result = await _mediator.Send(new GetWorkingDayHousemaidQuery()
+            {
+                Shift = Shift,
+                HousemaidId = housemaidId
             });
 
             return Ok(result);
