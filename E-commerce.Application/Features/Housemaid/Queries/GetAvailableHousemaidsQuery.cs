@@ -15,17 +15,10 @@ namespace E_commerce.Application.Features.Housemaid.Queries
 {
     public class GetAvailableHousemaidsQuery : IRequest<List<GetAvailableHousemaidDto>>
     {
-        public ShiftType Shift { get; set; }
+        public ShiftType? Shift { get; set; }
         public OrderType OrderType { get; set; }
         public List<DateTime> WorkingDays { get; set; } = new();
     }
-
-    public class GetAvailableHousemaidDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
     public class GetAvailableHousemaidsQueryHandler : IRequestHandler<GetAvailableHousemaidsQuery, List<GetAvailableHousemaidDto>>
     {
         private readonly IGetCleanerContext _context;
@@ -38,8 +31,7 @@ namespace E_commerce.Application.Features.Housemaid.Queries
         public async Task<List<GetAvailableHousemaidDto>> Handle(GetAvailableHousemaidsQuery request, CancellationToken cancellationToken)
         {
             // Validate inputs
-            if (!Enum.IsDefined(typeof(ShiftType), request.Shift) ||
-                !Enum.IsDefined(typeof(OrderType), request.OrderType))
+            if (!Enum.IsDefined(typeof(OrderType), request.OrderType))
             {
                 return new List<GetAvailableHousemaidDto>();
             }
@@ -69,7 +61,7 @@ namespace E_commerce.Application.Features.Housemaid.Queries
 
             // Step 3: Get all existing orders for this shift, with their working dates
             var bookedDatesByHousemaid = await _context.Orders
-                .Where(o => o.Shift == request.Shift)
+                .Where(o => o.OrderType != OrderType.Permanent || o.Shift == null || o.Shift == request.Shift)
                 .Select(o => new
                 {
                     o.HousemaidId,
@@ -149,4 +141,5 @@ namespace E_commerce.Application.Features.Housemaid.Queries
             return result.Distinct().OrderBy(d => d).ToList();
         }
     }
+
 }

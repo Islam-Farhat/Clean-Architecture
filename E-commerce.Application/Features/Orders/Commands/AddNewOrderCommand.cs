@@ -15,12 +15,12 @@ namespace E_commerce.Application.Features.Orders.Commands
     public class AddNewOrderCommand : IRequest<Result<int>>
     {
         public int HousemaidId { get; set; }
-        public string? Comment { get; set; }
-        public string ApartmentImageBase64 { get; set; }
+        public string? Comment { get; set; } = string.Empty;
+        public string? ApartmentImageBase64 { get; set; } = string.Empty;
         public string ApartmentNumber { get; set; }
         public OrderType OrderType { get; set; }
-        public ShiftType Shift { get; set; }
-        public PaymentType PaymentType { get; set; }
+        public ShiftType? Shift { get; set; } = null;
+        public PaymentType PaymentType { get; set; } 
         public List<DateTime> WorkingDays { get; set; } = new();
 
         public class AddNewOrderCommandHandler : IRequestHandler<AddNewOrderCommand, Result<int>>
@@ -39,19 +39,27 @@ namespace E_commerce.Application.Features.Orders.Commands
                 if (!Enum.IsDefined(typeof(OrderType), request.OrderType))
                     return Result.Failure<int>("Invalid OrderType.");
 
-                var fileName = await _mediaService.UploadImage(request.ApartmentImageBase64, "ImageBank/Order");
-                if (string.IsNullOrWhiteSpace(fileName.Value))
-                    return Result.Failure<int>("Upload Image Failed");
+                //update shift
+                request.Shift = request.OrderType == OrderType.Permanent ? null : request.Shift;
 
                 var order = Order.Instance(
                     request.HousemaidId,
-                    fileName.Value,
                     request.ApartmentNumber,
                     request.OrderType,
-                    request.Shift,
                     request.PaymentType,
+                    request.Shift,
                     request.Comment
                 );
+
+                if (!string.IsNullOrWhiteSpace(request.ApartmentImageBase64))
+                {
+                    var fileName = await _mediaService.UploadImage(request.ApartmentImageBase64, "ImageBank/Order");
+                    if (string.IsNullOrWhiteSpace(fileName.Value))
+                        return Result.Failure<int>("Upload Image Failed");
+
+                    order.Value.UpdateApartmentImage(fileName.Value);
+                }
+
 
                 if (order.IsFailure)
                     return Result.Failure<int>(order.Error);
@@ -99,14 +107,23 @@ namespace E_commerce.Application.Features.Orders.Commands
                     // For one-time orders, just use the provided working days
                     workingDays = request.WorkingDays.Where(d => d >= DateTime.UtcNow.Date).Distinct().ToList();
                 }
+                else if (request.OrderType == OrderType.Permanent)
+                {
+                    var startDate = DateTime.UtcNow.Date;
+                    var endOfYear = new DateTime(DateTime.UtcNow.Year, 12, 31);
 
-                if (!workingDays.Any() && request.OrderType != OrderType.Permanent)
+                    workingDays.AddRange(
+                        Enumerable.Range(0, (endOfYear - startDate).Days + 1)
+                                  .Select(offset => startDate.AddDays(offset))
+                    );
+                }
+                if (!workingDays.Any())
                     return Result.Failure<int>("No valid working days provided.");
 
                 // Check for existing orders with same HousemaidId, Shift, and overlapping WorkingDays
                 var existingWorkingDaysOrders = await _context.Orders
-                    .Where(o => o.HousemaidId == request.HousemaidId && o.Shift == request.Shift)
-                    .Select(x => x.WorkingDays).FirstOrDefaultAsync();
+                    .Where(o => o.HousemaidId == request.HousemaidId && o.Shift == request.Shift && !o.IsDeleted)
+                    .Select(x => x.WorkingDays.Where(x=>!x.IsDeleted)).FirstOrDefaultAsync();
 
                 if (existingWorkingDaysOrders != null)
                 {
@@ -116,10 +133,9 @@ namespace E_commerce.Application.Features.Orders.Commands
                     }
                 }
 
-
                 // Ensure unique working days before adding to order
                 var addWorkingDaysResult = order.Value.AddWorkingDays(workingDays.Distinct().ToList());
-                if (addWorkingDaysResult.IsFailure && request.OrderType != OrderType.Permanent)
+                if (addWorkingDaysResult.IsFailure)
                     return Result.Failure<int>(addWorkingDaysResult.Error);
 
                 // Save the order

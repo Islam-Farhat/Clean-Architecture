@@ -32,7 +32,7 @@ namespace E_commerce.Application.Features.Orders.Queries
             {
                 var baseUrl = _configuration["GetCleaner:BaseUrl"];
 
-                var orderQuery = _context.WorkingDays.Where(x=>x.WorkingDate.Date >= DateTime.UtcNow.Date && !x.IsDeleted).OrderBy(x=>x.WorkingDate).AsQueryable();
+                var orderQuery = _context.WorkingDays.Where(x=> !x.IsDeleted).OrderBy(x=>x.WorkingDate).AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(request.SearchParam))
                     orderQuery = orderQuery.Where(x => x.Order.ApartmentNumber.Contains(request.SearchParam) ||
@@ -44,17 +44,17 @@ namespace E_commerce.Application.Features.Orders.Queries
                 }
 
                 var orders = await orderQuery.Select(x => new GetOrdersDto
-                                             {
-                                                 Id = x.Id,
-                                                 ApartmentNumber = x.Order.ApartmentNumber,
-                                                 ImagePath = $"{baseUrl}ImageBank/Order/{x.Order.ApartmentImageUrl}",
-                                                 OrderType = x.Order.OrderType,
-                                                 Shift = x.Order.Shift,
-                                                 DriverId = x.DriverId,
-                                                 HousemaidName = x.Order.Housemaid.Name,
-                                                 IsAssigned = x.DriverId != null ? true : false,
-                                                 WorkingDay = x.WorkingDate.Date                                                
-                                             })
+                                                {
+                                                    Id = x.Id,
+                                                    ApartmentNumber = x.Order.ApartmentNumber,
+                                                    ImagePath = string.IsNullOrWhiteSpace(x.Order.ApartmentImageUrl) ? string.Empty : $"{baseUrl}ImageBank/Order/{x.Order.ApartmentImageUrl}",
+                                                    OrderType = x.Order.OrderType,
+                                                    Shift = x.Order.Shift,
+                                                    DriverId = x.DriverId,
+                                                    HousemaidName = x.Order.Housemaid.Name,
+                                                    IsAssigned = x.DriverId != null ? true : false,
+                                                    WorkingDay = x.WorkingDate.Date
+                                                })
                                              .Skip(request.Skip)
                                              .Take(request.Take)
                                              .ToListAsync();

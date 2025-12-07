@@ -3,7 +3,6 @@ using CSharpFunctionalExtensions.ValueTasks;
 using E_commerce.Domian;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using static CSharpFunctionalExtensions.Result;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -51,7 +50,7 @@ namespace E_commerce.Application.Features.Users.Commands
 
 
                 if (await _userManager.FindByNameAsync(request.Username) is not null)
-                    return Failure("Username is already registered!");
+                    return Result.Failure("Username is already registered!");
 
                 var user = new ApplicationUser
                 {

@@ -38,8 +38,11 @@ namespace E_commerce.Presentation.Controllers
         [Route("GetOrders")]
         public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null)
         {
-            var saudiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Arabian Standard Time");
-            var workingDayValue = workingDay ?? TimeZoneInfo.ConvertTime(DateTime.UtcNow, saudiTimeZone).Date;
+            var qatarTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Arabian Standard Time");
+            var qatarNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, qatarTimeZone);
+            var qatarToday = qatarNow.Date;
+
+            var workingDayValue = workingDay ?? qatarToday;
 
             var orders = await _mediator.Send(new GetOrderQuery
             {

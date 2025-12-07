@@ -14,10 +14,10 @@ namespace E_commerce.Domian.Entities
         public int Id { get; set; }
         public int HousemaidId { get; set; }
         public string? Comment { get; set; }
-        public string ApartmentImageUrl { get; set; }
+        public string? ApartmentImageUrl { get; set; }
         public string ApartmentNumber { get; set; }
         public OrderType OrderType { get; set; }
-        public ShiftType Shift { get; set; }
+        public ShiftType? Shift { get; set; }
         public PaymentType PaymentType { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Active;
         public DateTime CreatedAt { get; set; }
@@ -27,35 +27,29 @@ namespace E_commerce.Domian.Entities
 
         public static Result<Order> Instance(
             int housemaidId,
-            string apartmentImageUrl,
             string apartmentNumber,
             OrderType orderType,
-            ShiftType shift,
             PaymentType paymentType,
+            ShiftType? shift = null,
             string? comment = null)
         {
             if (housemaidId <= 0)
                 return Result.Failure<Order>("HousemaidId must be greater than zero.");
-            if (string.IsNullOrWhiteSpace(apartmentImageUrl))
-                return Result.Failure<Order>("ApartmentImageUrl is required.");
             if (string.IsNullOrWhiteSpace(apartmentNumber))
                 return Result.Failure<Order>("ApartmentNumber is required.");
             if (orderType == default)
                 return Result.Failure<Order>("OrderType is required.");
-            if (shift == default)
-                return Result.Failure<Order>("Shift is required.");
             if (paymentType == default)
-                return Result.Failure<Order>("PaymentType is required.");
-
-
+                return Result.Failure<Order>("PaymentType is required.");            
+            if (orderType != OrderType.Permanent && shift == null )
+                return Result.Failure<Order>("Shift is required.");
 
             var order = new Order
             {
                 HousemaidId = housemaidId,
-                ApartmentImageUrl = apartmentImageUrl,
                 ApartmentNumber = apartmentNumber,
                 OrderType = orderType,
-                Shift = shift,
+                Shift = orderType == OrderType.Permanent ? null : shift,
                 PaymentType = paymentType,
                 CreatedAt = DateTime.UtcNow,
                 Comment = comment,
@@ -71,6 +65,10 @@ namespace E_commerce.Domian.Entities
             this.WorkingDays = workingdays.Select(x => WorkingDay.Instance(x).Value).ToList();
 
             return Result.Success();
+        }
+        public void UpdateApartmentImage(string apartmentImageUrl)
+        {
+            this.ApartmentImageUrl = apartmentImageUrl;
         }
 
         public void Delete()

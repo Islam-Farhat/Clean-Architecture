@@ -11,9 +11,9 @@ namespace E_commerce.Application.Features.Orders.Dtos
     {
         public int Id { get; set; }
         public string ApartmentNumber { get; set; }
-        public string ImagePath { get; set; }
+        public string? ImagePath { get; set; }
         public OrderType OrderType { get; set; }
-        public ShiftType Shift { get; set; }
+        public ShiftType? Shift { get; set; }
         public DateTime WorkingDay { get; set; }
         public string HousemaidName { get; set; }
         public bool IsAssigned { get; set; }
