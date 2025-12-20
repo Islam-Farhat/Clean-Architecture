@@ -3,6 +3,7 @@ using E_commerce.Application.Features.Housemaid.Queries;
 using E_commerce.Application.Features.Housemaids.Commands;
 using E_commerce.Domian.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace E_commerce.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class HousemaidController : ControllerBase
     {
         private readonly IMediator _mediator;

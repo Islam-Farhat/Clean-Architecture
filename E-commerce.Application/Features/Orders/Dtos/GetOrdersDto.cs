@@ -18,5 +18,11 @@ namespace E_commerce.Application.Features.Orders.Dtos
         public string HousemaidName { get; set; }
         public bool IsAssigned { get; set; }
         public int? DriverId { get; set; }
+        public DeliveringStatus DeliveringStatus { get; set; } = DeliveringStatus.New;
+        public string? Comments { get; set; }
+        public decimal? Amount { get; set; } = 0;
+        public string? PaymentImage { get; set; }
+        public string? Location { get; set; }
+
     }
 }

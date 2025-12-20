@@ -29,14 +29,16 @@ namespace E_commerce.Infrastructure.Services
             _secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]!));
 
         }
+     
         public string GenerateAccessToken(IEnumerable<Claim> claims)
         {
             var signinCredentials = new SigningCredentials(_secretKey, SecurityAlgorithms.HmacSha256);
+            var expires = _datetime.GetUtcNow().AddMinutes(_jwt.ExpiryInMinutes);
             var tokeOptions = new JwtSecurityToken(
                 issuer: _jwt.Issuer,
                 audience: _jwt.Audience,
                 claims: claims,
-                expires: _datetime.GetLocalNow().Date.AddSeconds(_jwt.ExpiryInMinutes),
+                expires: expires.DateTime,
                 signingCredentials: signinCredentials
             );
             var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
@@ -64,7 +66,7 @@ namespace E_commerce.Infrastructure.Services
                 ValidateIssuer = true,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = _secretKey,
-                ValidateLifetime = false,
+                ValidateLifetime = true,
                 ValidIssuer = _jwt.Issuer,
                 ValidAudience = _jwt.Audience,
             };

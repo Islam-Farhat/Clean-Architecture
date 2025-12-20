@@ -1,7 +1,9 @@
 ﻿using E_commerce.Application.Features.Orders.Commands;
 using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Features.Orders.Queries;
+using E_commerce.Application.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -13,12 +15,15 @@ namespace E_commerce.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public OrderController(IMediator mediator)
+        private readonly ISessionUserService _sessionUser;
+        public OrderController(IMediator mediator, ISessionUserService sessionUser)
         {
             _mediator = mediator;
+            _sessionUser = sessionUser;
         }
 
 

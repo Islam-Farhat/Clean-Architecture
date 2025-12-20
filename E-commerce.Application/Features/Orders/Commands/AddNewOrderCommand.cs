@@ -1,8 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using E_commerce.Application.Interfaces;
+using E_commerce.Domian;
 using E_commerce.Domian.Entities;
 using E_commerce.Domian.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,24 +20,38 @@ namespace E_commerce.Application.Features.Orders.Commands
         public string? Comment { get; set; } = string.Empty;
         public string? ApartmentImageBase64 { get; set; } = string.Empty;
         public string ApartmentNumber { get; set; }
+        public string? Location { get; set; } = string.Empty;
         public OrderType OrderType { get; set; }
         public ShiftType? Shift { get; set; } = null;
-        public PaymentType PaymentType { get; set; } 
+        public PaymentType PaymentType { get; set; }
         public List<DateTime> WorkingDays { get; set; } = new();
-
+        public decimal Price { get; set; } = 0;
         public class AddNewOrderCommandHandler : IRequestHandler<AddNewOrderCommand, Result<int>>
         {
             private readonly IMediaService _mediaService;
             private readonly IGetCleanerContext _context;
-
-            public AddNewOrderCommandHandler(IMediaService mediaService, IGetCleanerContext context)
+            private readonly ISessionUserService _sessionUser;
+            private readonly UserManager<ApplicationUser> _userManager;
+            public AddNewOrderCommandHandler(IMediaService mediaService, IGetCleanerContext context, ISessionUserService sessionUser, UserManager<ApplicationUser> userManager)
             {
                 _mediaService = mediaService;
                 _context = context;
+                _sessionUser = sessionUser;
+                _userManager = userManager;
             }
 
             public async Task<Result<int>> Handle(AddNewOrderCommand request, CancellationToken cancellationToken)
             {
+                var user = await _userManager.FindByIdAsync(_sessionUser?.UserId.ToString());
+                if (user == null)
+                    return Result.Failure<int>("User not found.");
+
+                var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
+                var isDataEntry = await _userManager.IsInRoleAsync(user, RoleSystem.DataEntry.ToString());
+
+                if (!isAdmin || !isDataEntry)
+                    return Result.Failure<int>("User is not a admin or dataEntiry.");
+
                 if (!Enum.IsDefined(typeof(OrderType), request.OrderType))
                     return Result.Failure<int>("Invalid OrderType.");
 
@@ -47,8 +63,12 @@ namespace E_commerce.Application.Features.Orders.Commands
                     request.ApartmentNumber,
                     request.OrderType,
                     request.PaymentType,
+                    request.Price,
+                    _sessionUser.UserId,
+                    isAdmin ? CreatedSource.Admin : CreatedSource.DataEntry,
                     request.Shift,
-                    request.Comment
+                    request.Comment,
+                    request.Location
                 );
 
                 if (!string.IsNullOrWhiteSpace(request.ApartmentImageBase64))
@@ -123,7 +143,7 @@ namespace E_commerce.Application.Features.Orders.Commands
                 // Check for existing orders with same HousemaidId, Shift, and overlapping WorkingDays
                 var existingWorkingDaysOrders = await _context.Orders
                     .Where(o => o.HousemaidId == request.HousemaidId && o.Shift == request.Shift && !o.IsDeleted)
-                    .Select(x => x.WorkingDays.Where(x=>!x.IsDeleted)).FirstOrDefaultAsync();
+                    .Select(x => x.WorkingDays.Where(x => !x.IsDeleted)).FirstOrDefaultAsync();
 
                 if (existingWorkingDaysOrders != null)
                 {

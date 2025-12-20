@@ -34,6 +34,8 @@ namespace E_commerce.Infrastructure
 
             services.AddScoped<ITokenService, TokenService>();
 
+            services.AddScoped<ISessionUserService, SessionUserService>();
+
             return services;
         }
     }

@@ -6,6 +6,7 @@ using E_commerce.Application.Features.Housemaids.Commands;
 using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Features.Orders.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace E_commerce.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class DriverController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -65,9 +68,33 @@ namespace E_commerce.Presentation.Controllers
         [Route("GetDrivers")]
         public async Task<List<GetDriversDto>> GetDrivers()
         {
-            var drivers = await _mediator.Send(new GetAllDriversQuery{});
+            var drivers = await _mediator.Send(new GetAllDriversQuery { });
 
             return drivers;
+        }
+
+        [HttpPost]
+        [Route("deliveredToHome")]
+        public async Task<IActionResult> deliveredToHome(int id)
+        {
+            var result = await _mediator.Send(new DriverDeliveredHousemaidCommand { WorkingId = id });
+
+            if (result.IsSuccess)
+                return Ok();
+
+            return BadRequest(result.Error);
+        }
+
+        [HttpPost]
+        [Route("endOfShift")]
+        public async Task<IActionResult> endOfShift(DriverEndOfShiftCommand driverEndOfShiftCommand)
+        {
+            var result = await _mediator.Send(driverEndOfShiftCommand);
+
+            if (result.IsSuccess)
+                return Ok();
+
+            return BadRequest(result.Error);
         }
     }
 }

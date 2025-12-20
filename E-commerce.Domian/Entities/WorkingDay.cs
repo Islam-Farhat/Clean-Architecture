@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using E_commerce.Domian.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,11 @@ namespace E_commerce.Domian.Entities
         public DateTime WorkingDate { get; set; }
         public bool IsDeleted { get; set; }
         public int? DriverId { get; set; }
-
+        public DeliveringStatus DeliveringStatus { get; set; } = DeliveringStatus.New;
+        public PaymentType? PaymentType { get; set; }
+        public string? Comments { get; set; }
+        public decimal? Amount { get; set; } = 0;
+        public string? PaymentImage { get; set; }
         public Order Order { get; set; }
         public ApplicationUser Driver { get; set; }
 
@@ -41,6 +46,23 @@ namespace E_commerce.Domian.Entities
         public void Delete()
         {
             IsDeleted = true;
+        }
+        
+        public void ChangeStatusToDeliveredToHome()
+        {
+            this.DeliveringStatus = DeliveringStatus.DeliveredToHome;
+        }
+
+        public void ChangeStatusToEndOfShift(PaymentType? paymentType, decimal? amount ,string? comments)
+        {
+            this.DeliveringStatus = DeliveringStatus.EndOfShift;
+            this.Amount = amount;
+            this.PaymentImage = comments;
+        }
+
+        public void UpdatePaymentImage(string imageUrl)
+        {
+            this.PaymentImage = imageUrl;
         }
     }
 }

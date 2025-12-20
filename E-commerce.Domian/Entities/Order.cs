@@ -21,8 +21,14 @@ namespace E_commerce.Domian.Entities
         public PaymentType PaymentType { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Active;
         public DateTime CreatedAt { get; set; }
+        public CreatedSource CreateBy  { get; set; } = CreatedSource.Admin;
+        public decimal Price { get; set; } = 0;
+        public string? Location { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
+        public int? UserId { get; set; }
         public Housemaid Housemaid { get; set; }
+        public ApplicationUser User { get; set; }
+
         public ICollection<WorkingDay> WorkingDays { get; set; }
 
         public static Result<Order> Instance(
@@ -30,8 +36,13 @@ namespace E_commerce.Domian.Entities
             string apartmentNumber,
             OrderType orderType,
             PaymentType paymentType,
+            decimal price,
+            int? userId,
+            CreatedSource createdSource,
             ShiftType? shift = null,
-            string? comment = null)
+            string? comment = null,
+            string? location = null
+            )
         {
             if (housemaidId <= 0)
                 return Result.Failure<Order>("HousemaidId must be greater than zero.");
@@ -53,6 +64,10 @@ namespace E_commerce.Domian.Entities
                 PaymentType = paymentType,
                 CreatedAt = DateTime.UtcNow,
                 Comment = comment,
+                Price = price,
+                CreateBy = createdSource,
+                UserId = userId,
+                Location = location,
             };
 
             return Result.Success(order);

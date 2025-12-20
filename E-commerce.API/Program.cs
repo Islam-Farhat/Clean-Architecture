@@ -76,16 +76,17 @@ namespace E_commerce.API
                     ValidateIssuer = true,
                     ValidAudience = builder.Configuration["JWT:Audience"],
                     ValidateAudience = true,
-                    ValidateLifetime = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:key"])),
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:SecretKey"])),
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.FromMinutes(1)//buffer token to become valid after expiration to 1 minute
                 };
             });
             #endregion
             builder.Services.AddHttpContextAccessor();
+
             var app = builder.Build();
-          //  app.UseStaticFiles();
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(
