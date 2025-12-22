@@ -2,6 +2,7 @@
 using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Features.Orders.Queries;
 using E_commerce.Application.Interfaces;
+using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,7 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpPost]
         [Route("AddNewOrder")]
+        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry))]
         public async Task<IActionResult> AddNewOrder(AddNewOrderCommand addNewOrderCommand)
         {
             var result = await _mediator.Send(addNewOrderCommand);
@@ -39,22 +41,47 @@ namespace E_commerce.Presentation.Controllers
             return BadRequest(result.Error);
         }
 
+        [HttpPut]
+        [Route("EditOrder")]
+        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry))]
+        public async Task<IActionResult> EditOrder(EditOrderCommand editOrderCommand)
+        {
+            var result = await _mediator.Send(editOrderCommand);
+
+            if (result.IsSuccess)
+                return Ok();
+
+            return BadRequest(result.Error);
+        }
+
         [HttpGet]
         [Route("GetOrders")]
-        public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null)
+        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry))]
+        public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null, ShiftType? shiftType = null, OrderType? orderType = null)
         {
-            var qatarTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Arabian Standard Time");
-            var qatarNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, qatarTimeZone);
-            var qatarToday = qatarNow.Date;
+            //DateTime? workingDayUtc = null;
 
-            var workingDayValue = workingDay ?? qatarToday;
+            //if (workingDay.HasValue)
+            //{
+            //    // Assume the incoming date is in Qatar local time (AST = UTC+3)
+            //    var qatarTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Arabian Standard Time");
+
+            //    // Create a DateTime with the date part from client + Qatar time zone
+            //    // Important: Use DateTime.SpecifyKind to mark it as local (not Unspecified)
+            //    var localDate = DateTime.SpecifyKind(workingDay.Value, DateTimeKind.Unspecified);
+
+            //    // Convert Qatar local date to UTC
+            //    workingDayUtc = TimeZoneInfo.ConvertTimeToUtc(localDate, qatarTimeZone);
+            //}
 
             var orders = await _mediator.Send(new GetOrderQuery
             {
                 Skip = skip,
-                SearchParam = search,
                 Take = take,
-                WorkingDay = workingDayValue
+                SearchParam = search,
+                WorkingDay = workingDay,
+                Shift = shiftType,
+                OrderType = orderType
             });
 
             return orders;
@@ -62,11 +89,25 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpDelete]
         [Route("delete")]
+        [Authorize(Roles = nameof(RoleSystem.Admin))]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _mediator.Send(new DeleteOrderCommand() { Id = id });
 
             if (result.IsSuccess)
+                return Ok();
+
+            return BadRequest(result.Error);
+        }
+
+        [HttpPost]
+        [Route("cancelOrder")]
+        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry))]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var result = await _mediator.Send(new CancelOrderCommand() { Id = id });
+
+            if (result.IsSuccess) 
                 return Ok();
 
             return BadRequest(result.Error);

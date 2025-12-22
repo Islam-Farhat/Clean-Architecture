@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace E_commerce.Domian.Enums
+namespace E_commerce.Application.Features.Orders.Dtos
 {
-    public enum ShiftType
+    internal class EditOrderDto
     {
-        Shift1 = 1,
-        Shisft2 = 2,
-        //FullDay = 3
     }
 }

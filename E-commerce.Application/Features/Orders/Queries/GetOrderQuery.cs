@@ -22,6 +22,8 @@ namespace E_commerce.Application.Features.Orders.Queries
         public int Take { get; set; }
         public string SearchParam { get; set; } = string.Empty;
         public DateTime? WorkingDay { get; set; }
+        public ShiftType? Shift { get; set; } = null;
+        public OrderType? OrderType { get; set; } = null;
 
         private class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, List<GetOrdersDto>>
         {
@@ -41,20 +43,38 @@ namespace E_commerce.Application.Features.Orders.Queries
             {
                 var baseUrl = _configuration["GetCleaner:BaseUrl"];
 
+                var user = await _userManager.FindByIdAsync(_sessionUser?.UserId.ToString());
+                var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
+                if (user == null)
+                    return new List<GetOrdersDto>();
+
                 var orderQuery = _context.WorkingDays.Where(x => !x.IsDeleted).OrderBy(x => x.WorkingDate).AsQueryable();
+
+
+                if (!isAdmin)
+                {
+                    orderQuery = orderQuery.Where(x => x.Order.Status != OrderStatus.Cancelled);
+                }
 
                 if (!string.IsNullOrWhiteSpace(request.SearchParam))
                     orderQuery = orderQuery.Where(x => x.Order.ApartmentNumber.Contains(request.SearchParam) ||
-                    x.Order.Housemaid.Name.Contains(request.SearchParam));
+                    x.Order.Housemaid.Name.Contains(request.SearchParam) || x.Order.OrderCode.Contains(request.SearchParam));
 
                 if (request.WorkingDay != null || request.WorkingDay != default)
                 {
                     orderQuery = orderQuery.Where(x => x.WorkingDate.Date == request.WorkingDay.Value.Date);
                 }
-                var user = await _userManager.FindByIdAsync(_sessionUser?.UserId.ToString());
-                if (user == null)
-                    return new List<GetOrdersDto>();
-                var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
+
+                if (request.Shift != null)
+                {
+                    orderQuery = orderQuery.Where(x => x.Order.Shift == request.Shift);
+                } 
+                
+                if (request.OrderType != null)
+                {
+                    orderQuery = orderQuery.Where(x => x.Order.OrderType == request.OrderType);
+                }
+               
                 var orders = await orderQuery.Where(x => isAdmin || x.Order.UserId == _sessionUser.UserId)
                                               .Select(x => new GetOrdersDto
                                               {
@@ -72,6 +92,7 @@ namespace E_commerce.Application.Features.Orders.Queries
                                                   Comments = x.Comments,
                                                   DeliveringStatus = x.DeliveringStatus,
                                                   PaymentImage = string.IsNullOrWhiteSpace(x.PaymentImage) ? string.Empty : $"{baseUrl}ImageBank/WorkingDay/{x.PaymentImage}",
+                                                  OrderCode = x.Order.OrderCode,
                                               })
                                               .Skip(request.Skip)
                                               .Take(request.Take)

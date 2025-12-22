@@ -15,6 +15,8 @@ namespace E_commerce.Infrastructure.Configurations
         {
             builder.HasKey(x => x.Id);
             builder.HasMany(x => x.WorkingDays).WithOne(x => x.Order);
+            builder.Property(x => x.OrderCode).HasDefaultValue("0000000000");
+            builder.HasIndex(x => x.OrderCode).IsUnique();
 
         }
     }

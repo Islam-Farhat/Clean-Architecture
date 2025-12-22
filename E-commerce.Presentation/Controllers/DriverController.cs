@@ -5,6 +5,7 @@ using E_commerce.Application.Features.Housemaid.Commands;
 using E_commerce.Application.Features.Housemaids.Commands;
 using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Features.Orders.Queries;
+using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +19,7 @@ namespace E_commerce.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-
+    [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.Driver))]
     public class DriverController : ControllerBase
     {
         private readonly IMediator _mediator;

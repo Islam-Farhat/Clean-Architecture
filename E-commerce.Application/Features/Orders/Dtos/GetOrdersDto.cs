@@ -23,6 +23,7 @@ namespace E_commerce.Application.Features.Orders.Dtos
         public decimal? Amount { get; set; } = 0;
         public string? PaymentImage { get; set; }
         public string? Location { get; set; }
+        public string OrderCode { get; set; }
 
     }
 }

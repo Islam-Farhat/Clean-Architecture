@@ -49,13 +49,13 @@ namespace E_commerce.Application.Features.Orders.Commands
                 var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
                 var isDataEntry = await _userManager.IsInRoleAsync(user, RoleSystem.DataEntry.ToString());
 
-                if (!isAdmin || !isDataEntry)
+                if (!isAdmin && !isDataEntry)
                     return Result.Failure<int>("User is not a admin or dataEntiry.");
 
                 if (!Enum.IsDefined(typeof(OrderType), request.OrderType))
                     return Result.Failure<int>("Invalid OrderType.");
 
-                //update shift
+               
                 request.Shift = request.OrderType == OrderType.Permanent ? null : request.Shift;
 
                 var order = Order.Instance(
@@ -142,7 +142,7 @@ namespace E_commerce.Application.Features.Orders.Commands
 
                 // Check for existing orders with same HousemaidId, Shift, and overlapping WorkingDays
                 var existingWorkingDaysOrders = await _context.Orders
-                    .Where(o => o.HousemaidId == request.HousemaidId && o.Shift == request.Shift && !o.IsDeleted)
+                    .Where(o => o.HousemaidId == request.HousemaidId && o.Shift == request.Shift && !o.IsDeleted && o.Status != OrderStatus.Cancelled)
                     .Select(x => x.WorkingDays.Where(x => !x.IsDeleted)).FirstOrDefaultAsync();
 
                 if (existingWorkingDaysOrders != null)

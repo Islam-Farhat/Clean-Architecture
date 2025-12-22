@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -47,10 +48,16 @@ namespace E_commerce.Application.Features.Users.Commands
 
                 var claims = new List<Claim>
                         {
+                            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                             new ("UserId", user.Id.ToString()),
                             new ("UserName", $"{user.UserName}"),
                             new ("Role", userRoles?.FirstOrDefault())
                         };
+
+                foreach (var role in userRoles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
 
                 var accessToken = _tokenService.GenerateAccessToken(claims);
                 var refreshToken = _tokenService.GenerateRefreshToken();

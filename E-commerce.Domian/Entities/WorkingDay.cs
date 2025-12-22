@@ -48,6 +48,12 @@ namespace E_commerce.Domian.Entities
             IsDeleted = true;
         }
         
+        public void ChangeStatusToCancel()
+        {
+            this.DeliveringStatus = DeliveringStatus.Cancelled;
+        }
+
+        
         public void ChangeStatusToDeliveredToHome()
         {
             this.DeliveringStatus = DeliveringStatus.DeliveredToHome;
