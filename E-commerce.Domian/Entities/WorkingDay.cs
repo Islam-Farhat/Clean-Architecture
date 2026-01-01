@@ -21,6 +21,8 @@ namespace E_commerce.Domian.Entities
         public string? Comments { get; set; }
         public decimal? Amount { get; set; } = 0;
         public string? PaymentImage { get; set; }
+
+
         public Order Order { get; set; }
         public ApplicationUser Driver { get; set; }
 

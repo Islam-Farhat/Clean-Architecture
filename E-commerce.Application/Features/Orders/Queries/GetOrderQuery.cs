@@ -11,7 +11,6 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace E_commerce.Application.Features.Orders.Queries
@@ -24,82 +23,128 @@ namespace E_commerce.Application.Features.Orders.Queries
         public DateTime? WorkingDay { get; set; }
         public ShiftType? Shift { get; set; } = null;
         public OrderType? OrderType { get; set; } = null;
+        public bool IsAssigned { get; set; } = false;
+        public bool IncludeStayIn { get; set; } = false;
+    }
 
-        private class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, List<GetOrdersDto>>
+    internal class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, List<GetOrdersDto>>
+    {
+        private readonly IGetCleanerContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly ISessionUserService _sessionUser;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public GetOrderQueryHandler(
+            IGetCleanerContext context,
+            IConfiguration configuration,
+            ISessionUserService sessionUser,
+            UserManager<ApplicationUser> userManager)
         {
-            private readonly IGetCleanerContext _context;
-            private readonly IConfiguration _configuration;
-            private readonly ISessionUserService _sessionUser;
-            private readonly UserManager<ApplicationUser> _userManager;
+            _context = context;
+            _configuration = configuration;
+            _sessionUser = sessionUser;
+            _userManager = userManager;
+        }
 
-            public GetOrderQueryHandler(IGetCleanerContext context, IConfiguration configuration, ISessionUserService sessionUser, UserManager<ApplicationUser> userManager)
+        public async Task<List<GetOrdersDto>> Handle(GetOrderQuery request, CancellationToken cancellationToken)
+        {
+            var baseUrl = _configuration["GetCleaner:BaseUrl"];
+
+            var user = await _userManager.FindByIdAsync(_sessionUser?.UserId.ToString());
+            if (user == null)
+                return new List<GetOrdersDto>();
+
+            // Check roles
+            var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
+            var isSupervisor = await _userManager.IsInRoleAsync(user, RoleSystem.Supervisor.ToString());
+            // Note: Data Entry users typically don't have Admin/Supervisor roles
+
+            var canViewAll = isAdmin || isSupervisor;
+
+            var orderQuery = _context.WorkingDays
+                .Where(x => !x.IsDeleted)
+                .OrderBy(x => x.WorkingDate)
+                .AsQueryable();
+
+            // Hide cancelled orders from non-admins (optional business rule - adjust if needed)
+            if (!canViewAll)
             {
-                _context = context;
-                _configuration = configuration;
-                _sessionUser = sessionUser;
-                _userManager = userManager;
+                orderQuery = orderQuery.Where(x => x.Order.Status != OrderStatus.Cancelled);
             }
-            public async Task<List<GetOrdersDto>> Handle(GetOrderQuery request, CancellationToken cancellationToken)
+
+            if (!string.IsNullOrWhiteSpace(request.SearchParam))
             {
-                var baseUrl = _configuration["GetCleaner:BaseUrl"];
-
-                var user = await _userManager.FindByIdAsync(_sessionUser?.UserId.ToString());
-                var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
-                if (user == null)
-                    return new List<GetOrdersDto>();
-
-                var orderQuery = _context.WorkingDays.Where(x => !x.IsDeleted).OrderBy(x => x.WorkingDate).AsQueryable();
-
-
-                if (!isAdmin)
-                {
-                    orderQuery = orderQuery.Where(x => x.Order.Status != OrderStatus.Cancelled);
-                }
-
-                if (!string.IsNullOrWhiteSpace(request.SearchParam))
-                    orderQuery = orderQuery.Where(x => x.Order.ApartmentNumber.Contains(request.SearchParam) ||
-                    x.Order.Housemaid.Name.Contains(request.SearchParam) || x.Order.OrderCode.Contains(request.SearchParam));
-
-                if (request.WorkingDay != null || request.WorkingDay != default)
-                {
-                    orderQuery = orderQuery.Where(x => x.WorkingDate.Date == request.WorkingDay.Value.Date);
-                }
-
-                if (request.Shift != null)
-                {
-                    orderQuery = orderQuery.Where(x => x.Order.Shift == request.Shift);
-                } 
-                
-                if (request.OrderType != null)
-                {
-                    orderQuery = orderQuery.Where(x => x.Order.OrderType == request.OrderType);
-                }
-               
-                var orders = await orderQuery.Where(x => isAdmin || x.Order.UserId == _sessionUser.UserId)
-                                              .Select(x => new GetOrdersDto
-                                              {
-                                                  Id = x.Id,
-                                                  ApartmentNumber = x.Order.ApartmentNumber,
-                                                  ImagePath = string.IsNullOrWhiteSpace(x.Order.ApartmentImageUrl) ? string.Empty : $"{baseUrl}ImageBank/Order/{x.Order.ApartmentImageUrl}",
-                                                  OrderType = x.Order.OrderType,
-                                                  Shift = x.Order.Shift,
-                                                  DriverId = x.DriverId,
-                                                  HousemaidName = x.Order.Housemaid.Name,
-                                                  IsAssigned = x.DriverId != null ? true : false,
-                                                  WorkingDay = x.WorkingDate.Date,
-                                                  Amount = x.Amount,
-                                                  Location = x.Order.Location,
-                                                  Comments = x.Comments,
-                                                  DeliveringStatus = x.DeliveringStatus,
-                                                  PaymentImage = string.IsNullOrWhiteSpace(x.PaymentImage) ? string.Empty : $"{baseUrl}ImageBank/WorkingDay/{x.PaymentImage}",
-                                                  OrderCode = x.Order.OrderCode,
-                                              })
-                                              .Skip(request.Skip)
-                                              .Take(request.Take)
-                                              .ToListAsync();
-
-                return orders;
+                var search = request.SearchParam.Trim();
+                orderQuery = orderQuery.Where(x =>
+                    x.Order.ApartmentNumber.Contains(search) ||
+                    x.Order.Housemaid.Name.Contains(search) ||
+                    x.Order.OrderCode.Contains(search));
             }
+
+            if (request.WorkingDay.HasValue)
+            {
+                orderQuery = orderQuery.Where(x => x.WorkingDate.Date == request.WorkingDay.Value.Date);
+            }
+
+            if (request.IsAssigned)
+            {
+                orderQuery = orderQuery.Where(x => x.DriverId != null);
+            }
+            
+            if (!request.IncludeStayIn)
+            {
+                orderQuery = orderQuery.Where(x => x.Order.OrderType != OrderType.Permanent);
+            }
+
+            if (request.Shift.HasValue)
+            {
+                orderQuery = orderQuery.Where(x => x.Order.Shift == request.Shift.Value);
+            }
+
+            if (request.OrderType.HasValue)
+            {
+                orderQuery = orderQuery.Where(x => x.Order.OrderType == request.OrderType.Value);
+            }
+
+            // === KEY PART: Role-based filtering ===
+            if (!canViewAll)
+            {
+                // Data Entry or any other role: only see orders they created
+                orderQuery = orderQuery.Where(x => x.Order.UserId == _sessionUser.UserId);
+            }
+            // If canViewAll == true (Admin or Supervisor), no UserId filter → sees all
+
+            var orders = await orderQuery
+                .Select(x => new GetOrdersDto
+                {
+                    Id = x.Id,
+                    ApartmentNumber = x.Order.ApartmentNumber,
+                    ImagePath = string.IsNullOrWhiteSpace(x.Order.ApartmentImageUrl)
+                        ? string.Empty
+                        : $"{baseUrl}ImageBank/Order/{x.Order.ApartmentImageUrl}",
+                    OrderType = x.Order.OrderType,
+                    Shift = x.Order.Shift,
+                    DriverId = x.DriverId,
+                    HousemaidName = x.Order.Housemaid.Name,
+                    IsAssigned = x.DriverId != null,
+                    WorkingDay = x.WorkingDate.Date,
+                    Amount = x.Amount,
+                    Location = x.Order.Location,
+                    Comments = x.Comments,
+                    DeliveringStatus = x.DeliveringStatus,
+                    PaymentImage = string.IsNullOrWhiteSpace(x.PaymentImage)
+                        ? string.Empty
+                        : $"{baseUrl}ImageBank/WorkingDay/{x.PaymentImage}",
+                    OrderCode = x.Order.OrderCode,
+                    PaymentType = x.Order.PaymentType,
+                    DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
+                    HousemaidId = x.Order.HousemaidId
+                })
+                .Skip(request.Skip)
+                .Take(request.Take)
+                .ToListAsync(cancellationToken);
+
+            return orders;
         }
     }
 }

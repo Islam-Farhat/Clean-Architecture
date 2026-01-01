@@ -30,8 +30,6 @@ namespace E_commerce.Application.Features.Orders.Commands
 
             public async Task<Result> Handle(AssignOrderToDriverCommand request, CancellationToken cancellationToken)
             {
-
-                // Validate that the user is in the "Driver" role
                 var driver = await _userManager.FindByIdAsync(request.DriverId.ToString());
                 if (driver == null)
                 {

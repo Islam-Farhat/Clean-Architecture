@@ -19,7 +19,7 @@ namespace E_commerce.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.Driver))]
+    [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.Driver) + "," + nameof(RoleSystem.Supervisor))]
     public class DriverController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -95,6 +95,24 @@ namespace E_commerce.Presentation.Controllers
                 return Ok();
 
             return BadRequest(result.Error);
+        }
+
+        [HttpGet]
+        [Route("GetOrdersDriver")]
+        [Authorize(Roles = nameof(RoleSystem.Driver))]
+        public async Task<List<GetOrdersDto>> GetOrdersDriver(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null, ShiftType? shiftType = null, OrderType? orderType = null)
+        {
+            var orders = await _mediator.Send(new GetOrdersDriverQuery
+            {
+                Skip = skip,
+                Take = take,
+                SearchParam = search,
+                WorkingDay = workingDay,
+                Shift = shiftType,
+                OrderType = orderType
+            });
+
+            return orders;
         }
     }
 }

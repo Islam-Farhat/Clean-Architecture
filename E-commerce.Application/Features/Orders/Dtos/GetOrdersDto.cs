@@ -24,6 +24,10 @@ namespace E_commerce.Application.Features.Orders.Dtos
         public string? PaymentImage { get; set; }
         public string? Location { get; set; }
         public string OrderCode { get; set; }
+        public string? DriverName { get; set; }
+        public int HousemaidId { get; set; }
+        public PaymentType PaymentType { get; set; }
+
 
     }
 }

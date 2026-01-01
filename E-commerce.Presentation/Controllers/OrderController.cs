@@ -56,24 +56,9 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpGet]
         [Route("GetOrders")]
-        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry))]
-        public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null, ShiftType? shiftType = null, OrderType? orderType = null)
+        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry)+ "," + nameof(RoleSystem.Supervisor))]
+        public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null, ShiftType? shiftType = null, OrderType? orderType = null,bool isAssigned = false,bool includeStayIn = false)
         {
-            //DateTime? workingDayUtc = null;
-
-            //if (workingDay.HasValue)
-            //{
-            //    // Assume the incoming date is in Qatar local time (AST = UTC+3)
-            //    var qatarTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Arabian Standard Time");
-
-            //    // Create a DateTime with the date part from client + Qatar time zone
-            //    // Important: Use DateTime.SpecifyKind to mark it as local (not Unspecified)
-            //    var localDate = DateTime.SpecifyKind(workingDay.Value, DateTimeKind.Unspecified);
-
-            //    // Convert Qatar local date to UTC
-            //    workingDayUtc = TimeZoneInfo.ConvertTimeToUtc(localDate, qatarTimeZone);
-            //}
-
             var orders = await _mediator.Send(new GetOrderQuery
             {
                 Skip = skip,
@@ -81,7 +66,9 @@ namespace E_commerce.Presentation.Controllers
                 SearchParam = search,
                 WorkingDay = workingDay,
                 Shift = shiftType,
-                OrderType = orderType
+                OrderType = orderType,
+                IsAssigned = isAssigned,
+                IncludeStayIn = includeStayIn
             });
 
             return orders;
