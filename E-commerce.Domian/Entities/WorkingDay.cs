@@ -21,7 +21,8 @@ namespace E_commerce.Domian.Entities
         public string? Comments { get; set; }
         public decimal? Amount { get; set; } = 0;
         public string? PaymentImage { get; set; }
-
+        public DateTime? StartShiftDate { get; set; }
+        public DateTime? EndShiftDate { get; set; }
 
         public Order Order { get; set; }
         public ApplicationUser Driver { get; set; }
@@ -59,13 +60,15 @@ namespace E_commerce.Domian.Entities
         public void ChangeStatusToDeliveredToHome()
         {
             this.DeliveringStatus = DeliveringStatus.DeliveredToHome;
+            this.StartShiftDate = DateTime.UtcNow;
         }
 
         public void ChangeStatusToEndOfShift(PaymentType? paymentType, decimal? amount ,string? comments)
         {
-            this.DeliveringStatus = DeliveringStatus.EndOfShift;
+            this.DeliveringStatus = DeliveringStatus.Finished;
             this.Amount = amount;
             this.PaymentImage = comments;
+            this.EndShiftDate = DateTime.UtcNow;
         }
 
         public void UpdatePaymentImage(string imageUrl)

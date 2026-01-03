@@ -11,7 +11,7 @@ namespace E_commerce.Domian.Enums
         AssignedToDriver = 1,
         New = 2,
         DeliveredToHome = 3,
-        EndOfShift = 4,
+        Finished = 4,
         Cancelled = 5
     }
 }

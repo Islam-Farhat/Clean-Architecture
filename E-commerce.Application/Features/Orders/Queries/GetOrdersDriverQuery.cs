@@ -55,7 +55,6 @@ namespace E_commerce.Application.Features.Orders.Queries
                     .OrderBy(x => x.WorkingDate)
                     .AsQueryable();
 
-                // Search filter
                 if (!string.IsNullOrWhiteSpace(request.SearchParam))
                 {
                     var search = request.SearchParam.Trim();
@@ -65,19 +64,16 @@ namespace E_commerce.Application.Features.Orders.Queries
                         x.Order.OrderCode.Contains(search));
                 }
 
-                // Date filter
                 if (request.WorkingDay.HasValue)
                 {
                     orderQuery = orderQuery.Where(x => x.WorkingDate.Date == request.WorkingDay.Value.Date);
                 }
 
-                // Shift filter
                 if (request.Shift.HasValue)
                 {
                     orderQuery = orderQuery.Where(x => x.Order.Shift == request.Shift.Value);
                 }
 
-                // OrderType filter
                 if (request.OrderType.HasValue)
                 {
                     orderQuery = orderQuery.Where(x => x.Order.OrderType == request.OrderType.Value);
@@ -108,7 +104,9 @@ namespace E_commerce.Application.Features.Orders.Queries
                         OrderCode = x.Order.OrderCode,
                         PaymentType = x.Order.PaymentType,
                         DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
-                        HousemaidId = x.Order.HousemaidId
+                        HousemaidId = x.Order.HousemaidId,
+                        EndShiftDate = x.EndShiftDate,
+                        StartShiftDate = x.StartShiftDate,
                     })
                     .Skip(request.Skip)
                     .Take(request.Take)

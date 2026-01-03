@@ -27,7 +27,7 @@ namespace E_commerce.Application.Features.Orders.Dtos
         public string? DriverName { get; set; }
         public int HousemaidId { get; set; }
         public PaymentType PaymentType { get; set; }
-
-
+        public DateTime? StartShiftDate { get; set; }
+        public DateTime? EndShiftDate { get; set; }
     }
 }

@@ -54,10 +54,8 @@ namespace E_commerce.Application.Features.Orders.Queries
             if (user == null)
                 return new List<GetOrdersDto>();
 
-            // Check roles
             var isAdmin = await _userManager.IsInRoleAsync(user, RoleSystem.Admin.ToString());
             var isSupervisor = await _userManager.IsInRoleAsync(user, RoleSystem.Supervisor.ToString());
-            // Note: Data Entry users typically don't have Admin/Supervisor roles
 
             var canViewAll = isAdmin || isSupervisor;
 
@@ -106,13 +104,10 @@ namespace E_commerce.Application.Features.Orders.Queries
                 orderQuery = orderQuery.Where(x => x.Order.OrderType == request.OrderType.Value);
             }
 
-            // === KEY PART: Role-based filtering ===
             if (!canViewAll)
             {
-                // Data Entry or any other role: only see orders they created
                 orderQuery = orderQuery.Where(x => x.Order.UserId == _sessionUser.UserId);
             }
-            // If canViewAll == true (Admin or Supervisor), no UserId filter → sees all
 
             var orders = await orderQuery
                 .Select(x => new GetOrdersDto
@@ -138,7 +133,10 @@ namespace E_commerce.Application.Features.Orders.Queries
                     OrderCode = x.Order.OrderCode,
                     PaymentType = x.Order.PaymentType,
                     DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
-                    HousemaidId = x.Order.HousemaidId
+                    HousemaidId = x.Order.HousemaidId,
+                    EndShiftDate = x.EndShiftDate,
+                    StartShiftDate = x.StartShiftDate,
+
                 })
                 .Skip(request.Skip)
                 .Take(request.Take)

@@ -108,7 +108,9 @@ namespace E_commerce.Application.Features.DataEntry.Queries
                         OrderCode = x.Order.OrderCode,
                         PaymentType = x.Order.PaymentType,
                         DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
-                        HousemaidId = x.Order.HousemaidId
+                        HousemaidId = x.Order.HousemaidId,
+                        EndShiftDate = x.EndShiftDate,
+                        StartShiftDate = x.StartShiftDate,
                     })
                     .Skip(request.Skip)
                     .Take(request.Take)
