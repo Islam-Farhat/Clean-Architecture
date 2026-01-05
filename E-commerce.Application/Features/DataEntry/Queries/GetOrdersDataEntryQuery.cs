@@ -63,7 +63,7 @@ namespace E_commerce.Application.Features.DataEntry.Queries
                     var search = request.SearchParam.Trim();
                     orderQuery = orderQuery.Where(x =>
                         x.Order.ApartmentNumber.Contains(search) ||
-                        x.Order.Housemaid.Name.Contains(search) ||
+                        x.Order.OrderHousemaids.Any(o=>o.Housemaid.Name.Contains(search)) ||
                         x.Order.OrderCode.Contains(search));
                 }
 
@@ -84,10 +84,11 @@ namespace E_commerce.Application.Features.DataEntry.Queries
 
 
                 var orders = await orderQuery
-                    .Where(x=>x.Order.UserId == request.UserId)
+                    .Where(x => x.Order.UserId == request.UserId)
                     .Select(x => new GetOrdersDto
                     {
                         Id = x.Id,
+                        OrderId = x.OrderId,
                         ApartmentNumber = x.Order.ApartmentNumber,
                         ImagePath = string.IsNullOrWhiteSpace(x.Order.ApartmentImageUrl)
                             ? string.Empty
@@ -95,7 +96,7 @@ namespace E_commerce.Application.Features.DataEntry.Queries
                         OrderType = x.Order.OrderType,
                         Shift = x.Order.Shift,
                         DriverId = x.DriverId,
-                        HousemaidName = x.Order.Housemaid.Name,
+                        Housemaids = x.Order.OrderHousemaids.Select(oh => new HousemaidDto { Id = oh.HousemaidId, Name = oh.Housemaid.Name }).ToList(),
                         IsAssigned = x.DriverId != null,
                         WorkingDay = x.WorkingDate.Date,
                         Amount = x.Amount,
@@ -108,7 +109,6 @@ namespace E_commerce.Application.Features.DataEntry.Queries
                         OrderCode = x.Order.OrderCode,
                         PaymentType = x.Order.PaymentType,
                         DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
-                        HousemaidId = x.Order.HousemaidId,
                         EndShiftDate = x.EndShiftDate,
                         StartShiftDate = x.StartShiftDate,
                     })

@@ -5,11 +5,6 @@ using E_commerce.Domian.Entities;
 using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace E_commerce.Application.Features.Housemaid.Queries
 {
@@ -31,83 +26,86 @@ namespace E_commerce.Application.Features.Housemaid.Queries
 
         public async Task<List<GetAvailableHousemaidDto>> Handle(GetAvailableHousemaidsQuery request, CancellationToken cancellationToken)
         {
+            // Basic validation
             if (!Enum.IsDefined(typeof(OrderType), request.OrderType))
                 return new List<GetAvailableHousemaidDto>();
 
             if (request.WorkingDays == null || !request.WorkingDays.Any())
                 return new List<GetAvailableHousemaidDto>();
 
-            // For Permanent orders, shift is null — but they block everything
-            // For others, shift is required
             if (request.OrderType != OrderType.Permanent && !request.Shift.HasValue)
                 return new List<GetAvailableHousemaidDto>();
 
+            // Expand requested dates (weekly, monthly, etc.)
             var requestedDates = ExpandWorkingDays(request.WorkingDays, request.OrderType);
             if (!requestedDates.Any())
                 return new List<GetAvailableHousemaidDto>();
 
             var requestedDateSet = requestedDates.Select(d => d.Date).ToHashSet();
 
-            // Load all active orders with their working days and shift
+            // Load all ACTIVE orders with their housemaids, shift, and working dates
             var activeOrders = await _context.Orders
                 .AsNoTracking()
                 .Where(o => !o.IsDeleted && o.Status != OrderStatus.Cancelled)
                 .Select(o => new
                 {
-                    o.HousemaidId,
                     o.OrderType,
-                    o.Shift, // null for Permanent
+                    o.Shift,
+                    HousemaidIds = o.OrderHousemaids.Select(oh => oh.HousemaidId).ToList(),
                     WorkingDates = o.WorkingDays
                         .Where(wd => !wd.IsDeleted)
                         .Select(wd => wd.WorkingDate.Date)
                         .ToList()
                 })
+                .Where(o => o.HousemaidIds.Any()) // safety
                 .ToListAsync(cancellationToken);
 
-            // Build occupied (date, shift) pairs per housemaid
+            // Build occupied slots per housemaid: (Date, ShiftType?)
             var occupiedByHousemaid = new Dictionary<int, HashSet<(DateTime Date, ShiftType? Shift)>>();
 
             foreach (var order in activeOrders)
             {
-                if (!occupiedByHousemaid.TryGetValue(order.HousemaidId, out var occupiedSet))
+                foreach (var housemaidId in order.HousemaidIds)
                 {
-                    occupiedSet = new HashSet<(DateTime, ShiftType?)>();
-                    occupiedByHousemaid[order.HousemaidId] = occupiedSet;
-                }
-
-                if (order.OrderType == OrderType.Permanent)
-                {
-                    // Permanent blocks BOTH shifts on all its working days
-                    foreach (var date in order.WorkingDates)
+                    if (!occupiedByHousemaid.TryGetValue(housemaidId, out var occupiedSet))
                     {
-                        occupiedSet.Add((date, ShiftType.Shift1));
-                        occupiedSet.Add((date, ShiftType.Shisft2));
+                        occupiedSet = new HashSet<(DateTime, ShiftType?)>();
+                        occupiedByHousemaid[housemaidId] = occupiedSet;
                     }
-                }
-                else if (order.Shift.HasValue)
-                {
-                    // Non-permanent: blocks only its own shift on its dates
-                    foreach (var date in order.WorkingDates)
+
+                    if (order.OrderType == OrderType.Permanent)
                     {
-                        occupiedSet.Add((date, order.Shift.Value));
+                        // Permanent order blocks BOTH shifts for this housemaid on all its dates
+                        foreach (var date in order.WorkingDates)
+                        {
+                            occupiedSet.Add((date, ShiftType.Shift1));
+                            occupiedSet.Add((date, ShiftType.Shift2));
+                        }
+                    }
+                    else if (order.Shift.HasValue)
+                    {
+                        // Regular order blocks only its own shift
+                        foreach (var date in order.WorkingDates)
+                        {
+                            occupiedSet.Add((date, order.Shift.Value));
+                        }
                     }
                 }
             }
 
-            // Get all housemaids
+            // Get all housemaids (optionally filter by active status)
             var allHousemaids = await _context.Housemaids
-                //.Where(h => h.IsActive) // optional: only active ones
+                // .Where(h => h.IsActive) // uncomment if you have this flag
                 .Select(h => new { h.Id, h.Name })
                 .ToListAsync(cancellationToken);
 
-            // Check availability
             var availableHousemaids = new List<GetAvailableHousemaidDto>();
 
             foreach (var housemaid in allHousemaids)
             {
                 if (!occupiedByHousemaid.TryGetValue(housemaid.Id, out var occupiedSet))
                 {
-                    // No bookings at all → fully available
+                    // No bookings → fully available
                     availableHousemaids.Add(new GetAvailableHousemaidDto
                     {
                         Id = housemaid.Id,
@@ -120,15 +118,15 @@ namespace E_commerce.Application.Features.Housemaid.Queries
 
                 if (request.OrderType == OrderType.Permanent)
                 {
-                    // Requesting permanent → must have no bookings at all
+                    // Requesting a permanent contract → housemaid must have ZERO bookings
                     if (occupiedSet.Any())
                     {
                         isAvailable = false;
                     }
                 }
-                else // Hourly, Weekly, Monthly → check specific shift
+                else // Weekly, Monthly, Hourly
                 {
-                    var requestedShift = request?.Shift;
+                    var requestedShift = request.Shift.Value;
 
                     foreach (var date in requestedDateSet)
                     {
@@ -157,7 +155,7 @@ namespace E_commerce.Application.Features.Housemaid.Queries
         {
             var now = DateTime.UtcNow.Date;
             var endOfYear = new DateTime(now.Year, 12, 31);
-            var result = new HashSet<DateTime>(); // Use HashSet to avoid duplicates
+            var result = new HashSet<DateTime>();
 
             var uniqueInputDays = inputDays
                 .Select(d => d.Date)
@@ -165,49 +163,49 @@ namespace E_commerce.Application.Features.Housemaid.Queries
                 .Where(d => d >= now)
                 .ToList();
 
-            if (!uniqueInputDays.Any()) return new List<DateTime>();
+            if (!uniqueInputDays.Any() && orderType != OrderType.Permanent)
+                return new List<DateTime>();
 
             foreach (var baseDay in uniqueInputDays)
             {
-                if (orderType == OrderType.Weekly)
+                switch (orderType)
                 {
-                    var current = baseDay;
-                    while (current <= endOfYear)
-                    {
-                        result.Add(current);
-                        current = current.AddDays(7);
-                    }
-                }
-                else if (orderType == OrderType.Monthly)
-                {
-                    var current = baseDay;
-                    while (current <= endOfYear)
-                    {
-                        result.Add(current);
-                        try
+                    case OrderType.Weekly:
+                        var currentWeekly = baseDay;
+                        while (currentWeekly <= endOfYear)
                         {
-                            current = current.AddMonths(1);
+                            result.Add(currentWeekly);
+                            currentWeekly = currentWeekly.AddDays(7);
                         }
-                        catch (ArgumentOutOfRangeException)
+                        break;
+
+                    case OrderType.Monthly:
+                        var currentMonthly = baseDay;
+                        while (currentMonthly <= endOfYear)
                         {
-                            // e.g., Jan 31 → Feb doesn't exist → stop this chain
-                            break;
+                            result.Add(currentMonthly);
+                            try
+                            {
+                                currentMonthly = currentMonthly.AddMonths(1);
+                            }
+                            catch (ArgumentOutOfRangeException)
+                            {
+                                break; // e.g., Jan 31 → Feb not possible
+                            }
                         }
-                    }
-                }
-                else if (orderType == OrderType.Hourly)
-                {
-                    result.Add(baseDay);
-                }
-                else if (orderType == OrderType.Permanent)
-                {
-                    // Permanent uses all days from now to end of year (same as AddNewOrderCommand)
-                    for (var d = now; d <= endOfYear; d = d.AddDays(1))
-                    {
-                        result.Add(d);
-                    }
-                    // No need to process further input days — permanent is all days
-                    break;
+                        break;
+
+                    case OrderType.Hourly:
+                        result.Add(baseDay);
+                        break;
+
+                    case OrderType.Permanent:
+                        // Permanent: all days from now to end of year
+                        for (var d = now; d <= endOfYear; d = d.AddDays(1))
+                        {
+                            result.Add(d);
+                        }
+                        return result.OrderBy(d => d).ToList(); // early return
                 }
             }
 

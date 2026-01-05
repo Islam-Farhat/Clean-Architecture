@@ -16,7 +16,7 @@ namespace E_commerce.Application.Features.Orders.Commands
 {
     public class AddNewOrderCommand : IRequest<Result<int>>
     {
-        public int HousemaidId { get; set; }
+        public List<int> HousemaidIds { get; set; } = new();
         public string? Comment { get; set; } = string.Empty;
         public string? ApartmentImageBase64 { get; set; } = string.Empty;
         public string ApartmentNumber { get; set; }
@@ -55,18 +55,21 @@ namespace E_commerce.Application.Features.Orders.Commands
                 if (!Enum.IsDefined(typeof(OrderType), request.OrderType))
                     return Result.Failure<int>("Invalid OrderType.");
 
-               
+
+                if (!request.HousemaidIds.Any())
+                    return Result.Failure<int>("At least one housemaid must be selected.");
+
                 request.Shift = request.OrderType == OrderType.Permanent ? null : request.Shift;
 
                 var order = Order.Instance(
-                    request.HousemaidId,
+                    request.HousemaidIds.Distinct().ToList(),
                     request.ApartmentNumber,
                     request.OrderType,
+                    request.Shift,
                     request.PaymentType,
                     request.Price,
                     _sessionUser.UserId,
                     isAdmin ? CreatedSource.Admin : CreatedSource.DataEntry,
-                    request.Shift,
                     request.Comment,
                     request.Location
                 );
@@ -84,73 +87,25 @@ namespace E_commerce.Application.Features.Orders.Commands
                 if (order.IsFailure)
                     return Result.Failure<int>(order.Error);
 
-                var workingDays = new List<DateTime>();
+                var workingDays = GenerateWorkingDays(request.OrderType, request.WorkingDays);
 
-                if (request.OrderType == OrderType.Weekly)
-                {
-                    // Repeat selected days every week until the end of the year
-                    var endOfYear = new DateTime(DateTime.UtcNow.Year, 12, 31);
-                    foreach (var day in request.WorkingDays.Distinct()) // Ensure unique input days
-                    {
-                        if (day < DateTime.UtcNow.Date)
-                            continue; // Skip past dates
-
-                        var currentDay = day;
-                        while (currentDay <= endOfYear)
-                        {
-                            if (currentDay >= DateTime.UtcNow.Date)
-                                workingDays.Add(currentDay);
-                            currentDay = currentDay.AddDays(7); // Move to next week
-                        }
-                    }
-                }
-                else if (request.OrderType == OrderType.Monthly)
-                {
-                    // Repeat selected days every month until the end of the year
-                    var endOfYear = new DateTime(DateTime.UtcNow.Year, 12, 31);
-                    foreach (var day in request.WorkingDays.Distinct()) // Ensure unique input days
-                    {
-                        if (day < DateTime.UtcNow.Date)
-                            continue; // Skip past dates
-
-                        var currentDay = day;
-                        while (currentDay <= endOfYear)
-                        {
-                            if (currentDay >= DateTime.UtcNow.Date)
-                                workingDays.Add(currentDay);
-                            currentDay = currentDay.AddMonths(1); // Move to next month
-                        }
-                    }
-                }
-                else if (request.OrderType == OrderType.Hourly)
-                {
-                    // For one-time orders, just use the provided working days
-                    workingDays = request.WorkingDays.Where(d => d >= DateTime.UtcNow.Date).Distinct().ToList();
-                }
-                else if (request.OrderType == OrderType.Permanent)
-                {
-                    var startDate = DateTime.UtcNow.Date;
-                    var endOfYear = new DateTime(DateTime.UtcNow.Year, 12, 31);
-
-                    workingDays.AddRange(
-                        Enumerable.Range(0, (endOfYear - startDate).Days + 1)
-                                  .Select(offset => startDate.AddDays(offset))
-                    );
-                }
                 if (!workingDays.Any())
                     return Result.Failure<int>("No valid working days provided.");
 
-                // Check for existing orders with same HousemaidId, Shift, and overlapping WorkingDays
-                var existingWorkingDaysOrders = await _context.Orders
-                    .Where(o => o.HousemaidId == request.HousemaidId && o.Shift == request.Shift && !o.IsDeleted && o.Status != OrderStatus.Cancelled)
-                    .Select(x => x.WorkingDays.Where(x => !x.IsDeleted)).FirstOrDefaultAsync();
-
-                if (existingWorkingDaysOrders != null)
+                // Check conflict for EACH housemaid with the SAME shift
+                foreach (var housemaidId in request.HousemaidIds.Distinct())
                 {
-                    if (workingDays.Any(d => existingWorkingDaysOrders.Select(x => x.WorkingDate.Date).Contains(d.Date)))
-                    {
-                        return Result.Failure<int>("An order already exists for this housemaid, shift, and overlapping working days.");
-                    }
+                    var hasConflict = await _context.Orders
+                        .AnyAsync(o =>
+                            !o.IsDeleted &&
+                            o.Status != OrderStatus.Cancelled &&
+                            o.Shift == request.Shift &&
+                            o.OrderHousemaids.Any(oh => oh.HousemaidId == housemaidId) &&
+                            o.WorkingDays.Any(wd => !wd.IsDeleted && workingDays.Select(d => d.Date).Contains(wd.WorkingDate.Date)),
+                            cancellationToken);
+
+                    if (hasConflict)
+                        return Result.Failure<int>($"Housemaid ID {housemaidId} has a scheduling conflict on selected dates.");
                 }
 
                 // Ensure unique working days before adding to order
@@ -167,6 +122,69 @@ namespace E_commerce.Application.Features.Orders.Commands
 
                 return Result.Success(order.Value.Id);
 
+            }
+
+            private List<DateTime> GenerateWorkingDays(OrderType orderType, List<DateTime> selectedWorkingDays)
+            {
+                var workingDays = new List<DateTime>();
+
+                // Use only future or today dates
+                var validSelectedDays = selectedWorkingDays
+                    .Where(d => d.Date >= DateTime.UtcNow.Date)
+                    .Distinct()
+                    .OrderBy(d => d)
+                    .ToList();
+
+                if (!validSelectedDays.Any())
+                    return workingDays; // empty
+
+                var endOfYear = new DateTime(DateTime.UtcNow.Year, 12, 31);
+
+                switch (orderType)
+                {
+                    case OrderType.Weekly:
+                        foreach (var startDay in validSelectedDays)
+                        {
+                            var current = startDay;
+                            while (current <= endOfYear)
+                            {
+                                workingDays.Add(current);
+                                current = current.AddDays(7);
+                            }
+                        }
+                        break;
+
+                    case OrderType.Monthly:
+                        foreach (var startDay in validSelectedDays)
+                        {
+                            var current = startDay;
+                            while (current <= endOfYear)
+                            {
+                                workingDays.Add(current);
+                                current = current.AddMonths(1);
+                            }
+                        }
+                        break;
+
+                    case OrderType.Hourly:
+                        // One-time: just use the selected days
+                        workingDays.AddRange(validSelectedDays);
+                        break;
+
+                    case OrderType.Permanent:
+                        // Every day from today until end of year
+                        var startDate = DateTime.UtcNow.Date;
+                        for (var day = startDate; day <= endOfYear; day = day.AddDays(1))
+                        {
+                            workingDays.Add(day);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+
+                return workingDays.Distinct().OrderBy(d => d).ToList();
             }
         }
     }

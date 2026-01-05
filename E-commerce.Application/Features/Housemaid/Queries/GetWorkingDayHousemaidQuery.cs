@@ -26,12 +26,21 @@ namespace E_commerce.Application.Features.Housemaid.Queries
             public async Task<List<DateTime>> Handle(GetWorkingDayHousemaidQuery request, CancellationToken cancellationToken)
             {
 
-                var workingDays =await _context.Orders
-                                        .Where(x => x.HousemaidId == request.HousemaidId && x.Shift == request.Shift)
-                                        .SelectMany(x => x.WorkingDays.Select(w => w.WorkingDate))
-                                        .ToListAsync();
+                var workingDates = await _context.Orders
+                                 .AsNoTracking()
+                                 .Where(o =>
+                                     !o.IsDeleted &&
+                                     o.Status != OrderStatus.Cancelled &&
+                                     o.Shift == request.Shift &&
+                                     o.OrderHousemaids.Any(oh => oh.HousemaidId == request.HousemaidId))
+                                 .SelectMany(o => o.WorkingDays)
+                                 .Where(wd => !wd.IsDeleted)
+                                 .Select(wd => wd.WorkingDate.Date)
+                                 .Distinct()
+                                 .OrderBy(d => d)
+                                 .ToListAsync(cancellationToken);
 
-                return workingDays ?? new List<DateTime>();
+                return workingDates;
             }
         }
     }

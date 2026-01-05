@@ -12,7 +12,7 @@ namespace E_commerce.Domian.Entities
     {
         private Order() { }
         public int Id { get; private set; }
-        public int HousemaidId { get; private set; }
+        //public int HousemaidId { get; private set; }
         public string? Comment { get; private set; }
         public string? ApartmentImageUrl { get; private set; }
         public string ApartmentNumber { get; private set; }
@@ -27,38 +27,44 @@ namespace E_commerce.Domian.Entities
         public bool IsDeleted { get; private set; }
         public int? UserId { get; private set; }
         public string OrderCode { get; private set; }
-        public Housemaid Housemaid { get; set; }
+        //public Housemaid Housemaid { get; set; }
         public ApplicationUser User { get; set; }
-
+        public ICollection<OrderHousemaid> OrderHousemaids { get; private set; } = new List<OrderHousemaid>();
         public ICollection<WorkingDay> WorkingDays { get; set; }
 
+
         public static Result<Order> Instance(
-            int housemaidId,
-            string apartmentNumber,
-            OrderType orderType,
-            PaymentType paymentType,
-            decimal price,
-            int? userId,
-            CreatedSource createdSource,
-            ShiftType? shift = null,
-            string? comment = null,
-            string? location = null
-            )
+                List<int> housemaidIds,
+                string apartmentNumber,
+                OrderType orderType,
+                ShiftType? shift,
+                PaymentType paymentType,
+                decimal price,
+                int? userId,
+                CreatedSource createdSource,
+                string? comment = null,
+                string? location = null)
         {
-            if (housemaidId <= 0)
-                return Result.Failure<Order>("HousemaidId must be greater than zero.");
+            if (!housemaidIds?.Any() ?? true)
+                return Result.Failure<Order>("At least one housemaid is required.");
+
+            if (housemaidIds.Any(id => id <= 0))
+                return Result.Failure<Order>("Invalid HousemaidId.");
+
             if (string.IsNullOrWhiteSpace(apartmentNumber))
                 return Result.Failure<Order>("ApartmentNumber is required.");
+
             if (orderType == default)
                 return Result.Failure<Order>("OrderType is required.");
+
             if (paymentType == default)
                 return Result.Failure<Order>("PaymentType is required.");
+
             if (orderType != OrderType.Permanent && shift == null)
-                return Result.Failure<Order>("Shift is required.");
+                return Result.Failure<Order>("Shift is required for non-permanent orders.");
 
             var order = new Order
             {
-                HousemaidId = housemaidId,
                 ApartmentNumber = apartmentNumber,
                 OrderType = orderType,
                 Shift = orderType == OrderType.Permanent ? null : shift,
@@ -69,7 +75,8 @@ namespace E_commerce.Domian.Entities
                 CreateBy = createdSource,
                 UserId = userId,
                 Location = location,
-                OrderCode = GenerateOrderCode()
+                OrderCode = GenerateOrderCode(),
+                OrderHousemaids = housemaidIds.Select(id => OrderHousemaid.Create(0, id)).ToList()
             };
 
             return Result.Success(order);
@@ -77,32 +84,28 @@ namespace E_commerce.Domian.Entities
 
 
         public Result Update(
-                int housemaidId,
-                string apartmentNumber,
-                string? comment,
-                string? location,
-                OrderType orderType,
-                ShiftType? shift,
-                PaymentType paymentType,
-                decimal price)
+            List<int> housemaidIds,
+            string apartmentNumber,
+            string? comment,
+            string? location,
+            OrderType orderType,
+            ShiftType? shift,
+            PaymentType paymentType,
+            decimal price)
         {
-            if (housemaidId <= 0)
-                return Result.Failure("HousemaidId must be greater than zero.");
+            if (!housemaidIds?.Any() ?? true)
+                return Result.Failure("At least one housemaid is required.");
+
+            if (housemaidIds.Any(id => id <= 0))
+                return Result.Failure("Invalid HousemaidId.");
 
             if (string.IsNullOrWhiteSpace(apartmentNumber))
                 return Result.Failure("ApartmentNumber is required.");
 
-            if (!Enum.IsDefined(typeof(OrderType), orderType))
-                return Result.Failure("Invalid OrderType.");
-
-            if (!Enum.IsDefined(typeof(PaymentType), paymentType))
-                return Result.Failure("Invalid PaymentType.");
-
             if (orderType != OrderType.Permanent && shift == null)
                 return Result.Failure("Shift is required for non-permanent orders.");
 
-            // Apply updates
-            this.HousemaidId = housemaidId;
+
             this.ApartmentNumber = apartmentNumber;
             this.Comment = comment;
             this.Location = location;
@@ -111,9 +114,17 @@ namespace E_commerce.Domian.Entities
             this.PaymentType = paymentType;
             this.Price = price;
 
+            // Replace all housemaids
+            this.OrderHousemaids.Clear();
+            foreach (var id in housemaidIds.Distinct())
+            {
+                this.OrderHousemaids.Add(OrderHousemaid.Create(this.Id, id));
+            }
+
             return Result.Success();
         }
 
+       
         public Result AddWorkingDays(List<DateTime> workingdays)
         {
             if (!workingdays.Any())
@@ -123,6 +134,7 @@ namespace E_commerce.Domian.Entities
 
             return Result.Success();
         }
+       
         public void UpdateApartmentImage(string apartmentImageUrl)
         {
             this.ApartmentImageUrl = apartmentImageUrl;

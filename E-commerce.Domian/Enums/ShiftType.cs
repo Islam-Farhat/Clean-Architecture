@@ -9,7 +9,7 @@ namespace E_commerce.Domian.Enums
     public enum ShiftType
     {
         Shift1 = 1,
-        Shisft2 = 2,
+        Shift2 = 2,
         //FullDay = 3
     }
 }
