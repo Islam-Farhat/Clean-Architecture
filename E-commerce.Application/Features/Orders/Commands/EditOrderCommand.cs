@@ -55,7 +55,7 @@ namespace E_commerce.Application.Features.Orders.Commands
 
                 var order = await _context.Orders
                     .AsTracking()
-                    .Include(o => o.WorkingDays)
+                    .Include(o => o.WorkingDays.Where(x => x.WorkingDate >= DateTime.UtcNow))
                     .Include(o => o.OrderHousemaids)
                     .FirstOrDefaultAsync(o => o.Id == request.OrderId && !o.IsDeleted, cancellationToken);
 

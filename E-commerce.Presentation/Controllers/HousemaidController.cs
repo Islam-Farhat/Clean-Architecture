@@ -99,10 +99,26 @@ namespace E_commerce.Presentation.Controllers
 
             return Ok(result);
         }
-        
+
+
+        [HttpGet]
+        [Route("getAvailableHousemaidsForEdit")]
+        public async Task<IActionResult> getAvailableHousemaidsForEdit(ShiftType? Shift, OrderType orderType, int orderId, [FromQuery] List<DateTime> workingDays)
+        {
+            var result = await _mediator.Send(new GetAvailableHousemaidsForEditQuery()
+            {
+                Shift = Shift,
+                WorkingDays = workingDays,
+                OrderType = orderType,
+                OrderId = orderId
+            });
+
+            return Ok(result);
+        }
+
         [HttpGet]
         [Route("getWorkingDayForHousemaid")]
-        public async Task<IActionResult> getWorkingDayForHousemaid(int housemaidId ,ShiftType Shift)
+        public async Task<IActionResult> getWorkingDayForHousemaid(int housemaidId, ShiftType Shift)
         {
             var result = await _mediator.Send(new GetWorkingDayHousemaidQuery()
             {

@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using E_commerce.Application.Interfaces;
 using E_commerce.Domian;
+using E_commerce.Domian.Entities;
 using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -14,15 +16,18 @@ namespace E_commerce.Application.Features.Drivers.Commands
         public string? PhoneNumber { get; set; }
         public string? Username { get; set; }
         public string? Password { get; set; }
+        public string? ImageBase64 { get; set; } = null;
+        public string? Address { get; set; } = null;
     }
 
     public class UpdateDriverCommandHandler : IRequestHandler<UpdateDriverCommand, Result>
     {
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public UpdateDriverCommandHandler(UserManager<ApplicationUser> userManager)
+        private readonly IMediaService _mediaService;
+        public UpdateDriverCommandHandler(UserManager<ApplicationUser> userManager, IMediaService mediaService)
         {
             _userManager = userManager;
+            _mediaService = mediaService;
         }
 
         public async Task<Result> Handle(UpdateDriverCommand request, CancellationToken cancellationToken)
@@ -50,6 +55,20 @@ namespace E_commerce.Application.Features.Drivers.Commands
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
             {
                 user.PhoneNumber = request.PhoneNumber;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Address))
+            {
+                user.Address = request?.Address;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ImageBase64))
+            {
+                var fileName = await _mediaService.UploadImage(request.ImageBase64, "ImageBank/Users");
+                if (string.IsNullOrWhiteSpace(fileName.Value))
+                    return Result.Failure<int>("Upload Image Failed");
+
+                user.UpdateImage(fileName.Value);
             }
 
             var updateResult = await _userManager.UpdateAsync(user);

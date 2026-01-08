@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using E_commerce.Application.Common;
 using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Interfaces;
 using E_commerce.Domian;
@@ -136,6 +137,7 @@ namespace E_commerce.Application.Features.Orders.Queries
                     DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
                     EndShiftDate = x.EndShiftDate,
                     StartShiftDate = x.StartShiftDate,
+                    Price = x.Order.Price
 
                 })
                 .Skip(request.Skip)

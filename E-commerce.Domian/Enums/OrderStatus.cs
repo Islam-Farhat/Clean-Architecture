@@ -10,8 +10,9 @@ namespace E_commerce.Domian.Enums
     public enum OrderStatus
     {
         Active = 1,
-        Confirmed,
         Completed,
-        Cancelled
+        Cancelled,
+        New,
+        Deleted,
     }
 }

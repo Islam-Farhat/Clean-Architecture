@@ -11,6 +11,8 @@ namespace E_commerce.Domian
     public class ApplicationUser : IdentityUser<int>
     {
         public string PhoneNumber { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Address { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
          public ICollection<WorkingDay> Workdays { get; set; }
@@ -22,6 +24,11 @@ namespace E_commerce.Domian
 
             RefreshToken = newRefreshToken;
             RefreshTokenExpiryTime = refreshTokenExpiryTime;
+        }
+
+        public void UpdateImage(string imageUrl)
+        {
+            this.ImageUrl = imageUrl;
         }
 
     }

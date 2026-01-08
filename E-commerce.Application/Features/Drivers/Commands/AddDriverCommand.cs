@@ -1,8 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using E_commerce.Application.Features.Users.Commands;
 using E_commerce.Application.Helper;
-using E_commerce.Domian.Enums;
+using E_commerce.Application.Interfaces;
 using E_commerce.Domian;
+using E_commerce.Domian.Entities;
+using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +25,8 @@ namespace E_commerce.Application.Features.Drivers.Commands
         public string PhoneNumber { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public string? ImageBase64 { get; set; } = null;
+        public string? Address { get; set; } = null;
 
         public class AddDriverCommandHandler : IRequestHandler<AddDriverCommand, Result<int>>
         {
@@ -30,12 +34,14 @@ namespace E_commerce.Application.Features.Drivers.Commands
             private readonly RoleManager<ApplicationRole> _roleManager;
             private readonly IConfiguration _configuration;
             private readonly JWT _jwt;
-            public AddDriverCommandHandler(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IConfiguration configuration, IOptions<JWT> jwt)
+            private readonly IMediaService _mediaService;
+            public AddDriverCommandHandler(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IConfiguration configuration, IOptions<JWT> jwt, IMediaService mediaService)
             {
                 _userManager = userManager;
                 _roleManager = roleManager;
                 _configuration = configuration;
                 _jwt = jwt.Value;
+                _mediaService = mediaService;
             }
             public async Task<Result<int>> Handle(AddDriverCommand request, CancellationToken cancellationToken)
             {
@@ -46,8 +52,18 @@ namespace E_commerce.Application.Features.Drivers.Commands
                 {
                     UserName = request.Username,
                     Email = request.Username,
-                    PhoneNumber = request.PhoneNumber
+                    PhoneNumber = request.PhoneNumber,
+                    Address = request.Address,
                 };
+
+                if (!string.IsNullOrWhiteSpace(request.ImageBase64))
+                {
+                    var fileName = await _mediaService.UploadImage(request.ImageBase64, "ImageBank/Users");
+                    if (string.IsNullOrWhiteSpace(fileName.Value))
+                        return Result.Failure<int>("Upload Image Failed");
+
+                    user.UpdateImage(fileName.Value);
+                }
 
                 var result = await _userManager.CreateAsync(user, request.Password);
 

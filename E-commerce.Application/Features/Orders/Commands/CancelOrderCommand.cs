@@ -23,7 +23,7 @@ namespace E_commerce.Application.Features.Orders.Commands
 
             public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
             {
-                var order = await _context.Orders.AsTracking().Include(x => x.WorkingDays).FirstOrDefaultAsync(x => x.Id == request.Id);
+                var order = await _context.Orders.AsTracking().Include(x => x.WorkingDays).FirstOrDefaultAsync(x => x.Id == request.Id && !x.IsDeleted);
 
                 if (order == null)
                     return Result.Failure("Order not exists!");

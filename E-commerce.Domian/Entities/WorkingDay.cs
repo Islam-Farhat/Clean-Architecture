@@ -34,7 +34,8 @@ namespace E_commerce.Domian.Entities
 
             var workingDayEntity = new WorkingDay
             {
-                WorkingDate = workingDate
+                WorkingDate = workingDate,
+                DeliveringStatus = DeliveringStatus.New,
             };
 
             return Result.Success(workingDayEntity);
@@ -42,6 +43,7 @@ namespace E_commerce.Domian.Entities
 
         public Result AssignOrderToDriver(int driverId)
         {
+            this.DeliveringStatus = DeliveringStatus.AssignedToDriver;
             this.DriverId = driverId; 
             return Result.Success();
         }

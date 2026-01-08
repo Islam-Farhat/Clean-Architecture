@@ -75,6 +75,7 @@ namespace E_commerce.Domian.Entities
                 CreateBy = createdSource,
                 UserId = userId,
                 Location = location,
+                Status = OrderStatus.New,
                 OrderCode = GenerateOrderCode(),
                 OrderHousemaids = housemaidIds.Select(id => OrderHousemaid.Create(0, id)).ToList()
             };
@@ -143,6 +144,7 @@ namespace E_commerce.Domian.Entities
         public void Delete()
         {
             this.IsDeleted = true;
+            this.Status = OrderStatus.Deleted;
             foreach (var workingDay in this.WorkingDays)
             {
                 workingDay.Delete();

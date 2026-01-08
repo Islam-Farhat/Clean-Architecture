@@ -1,4 +1,5 @@
-﻿using E_commerce.Application.Features.Orders.Commands;
+﻿using E_commerce.Application.Common;
+using E_commerce.Application.Features.Orders.Commands;
 using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Features.Orders.Queries;
 using E_commerce.Application.Interfaces;
@@ -56,8 +57,8 @@ namespace E_commerce.Presentation.Controllers
 
         [HttpGet]
         [Route("GetOrders")]
-        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry)+ "," + nameof(RoleSystem.Supervisor))]
-        public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null, ShiftType? shiftType = null, OrderType? orderType = null,bool isAssigned = false,bool includeStayIn = false)
+        [Authorize(Roles = nameof(RoleSystem.Admin) + "," + nameof(RoleSystem.DataEntry) + "," + nameof(RoleSystem.Supervisor))]
+        public async Task<List<GetOrdersDto>> GetOrders(int skip = 0, int take = 10, string search = "", DateTime? workingDay = null, ShiftType? shiftType = null, OrderType? orderType = null, bool? isAssigned = null, bool? includeStayIn = null)
         {
             var orders = await _mediator.Send(new GetOrderQuery
             {
@@ -67,8 +68,8 @@ namespace E_commerce.Presentation.Controllers
                 WorkingDay = workingDay,
                 Shift = shiftType,
                 OrderType = orderType,
-                IsAssigned = isAssigned,
-                IncludeStayIn = includeStayIn
+                IsAssigned = isAssigned.HasValue ? isAssigned.Value : false,
+                IncludeStayIn = includeStayIn.HasValue ? includeStayIn.Value : false,
             });
 
             return orders;
@@ -94,7 +95,7 @@ namespace E_commerce.Presentation.Controllers
         {
             var result = await _mediator.Send(new CancelOrderCommand() { Id = id });
 
-            if (result.IsSuccess) 
+            if (result.IsSuccess)
                 return Ok();
 
             return BadRequest(result.Error);

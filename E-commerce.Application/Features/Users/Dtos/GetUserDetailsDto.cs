@@ -11,5 +11,9 @@ namespace E_commerce.Application.Features.Users.Dtos
         public string PhoneNumber { get; set; }
         public string Username { get; set; }
         public string Role { get; set; }
+        public string ImagePath { get; set; }
+        public string? Address { get; set; } = null;
+
+
     }
 }

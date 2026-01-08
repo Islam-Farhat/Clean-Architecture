@@ -1,17 +1,18 @@
-﻿using E_commerce.Application.Features.Orders.Dtos;
+﻿using E_commerce.Application.Common;
+using E_commerce.Application.Features.Orders.Dtos;
 using E_commerce.Application.Interfaces;
-using E_commerce.Domian.Entities;
 using E_commerce.Domian;
+using E_commerce.Domian.Entities;
 using E_commerce.Domian.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace E_commerce.Application.Features.Orders.Queries
 {
@@ -80,7 +81,7 @@ namespace E_commerce.Application.Features.Orders.Queries
                 }
 
                 var orders = await orderQuery
-                    .Where(x=>x.DriverId == (int)_sessionUser.UserId)
+                    .Where(x => x.DriverId == (int)_sessionUser.UserId)
                     .Select(x => new GetOrdersDto
                     {
                         Id = x.Id,
@@ -107,6 +108,7 @@ namespace E_commerce.Application.Features.Orders.Queries
                         DriverName = x.Driver != null ? x.Driver.UserName : string.Empty,
                         EndShiftDate = x.EndShiftDate,
                         StartShiftDate = x.StartShiftDate,
+                        Price = x.Order.Price
                     })
                     .Skip(request.Skip)
                     .Take(request.Take)

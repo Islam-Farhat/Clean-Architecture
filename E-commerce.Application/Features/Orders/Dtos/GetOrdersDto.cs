@@ -29,6 +29,7 @@ namespace E_commerce.Application.Features.Orders.Dtos
         public PaymentType PaymentType { get; set; }
         public DateTime? StartShiftDate { get; set; }
         public DateTime? EndShiftDate { get; set; }
+        public decimal Price { get; set; } = 0;
     }
 
 
